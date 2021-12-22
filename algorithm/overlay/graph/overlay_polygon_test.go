@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"fmt"
 	"github.com/spatial-go/geoos/algorithm/overlay"
 	"reflect"
 	"testing"
@@ -106,7 +107,7 @@ func TestPolygonOverlay_Union(t *testing.T) {
 		want    []matrix.Steric
 		wantErr bool
 	}{
-		{"poly poly", fields{PointOverlay: &overlay.PointOverlay{matrix.PolygonMatrix{{{0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}}},
+			{"poly poly", fields{PointOverlay: &overlay.PointOverlay{matrix.PolygonMatrix{{{0, 0}, {10, 0}, {10, 10}, {0, 10}, {0, 0}}},
 			matrix.PolygonMatrix{{{5, 5}, {15, 5}, {15, 15}, {5, 15}, {5, 5}}},
 		}},
 			[]matrix.Steric{matrix.PolygonMatrix{{{5, 10}, {0, 10}, {0, 0}, {10, 0}, {10, 5}, {15, 5}, {15, 15}, {5, 15}, {5, 10}}}}, false},
@@ -193,6 +194,8 @@ func TestPolygonOverlay_Union(t *testing.T) {
 			wantErr: false},
 	}
 	for _, tt := range tests {
+		fmt.Printf("111:%v", *tt.fields.PointOverlay)
+
 		if !geoos.GeoosTestTag && tt.name != "poly poly03" {
 			continue
 		}

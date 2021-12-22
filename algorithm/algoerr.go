@@ -46,6 +46,11 @@ func ErrorDimension(obj ...interface{}) error {
 	return fmt.Errorf("Steric Should be Dimension: %v", obj...)
 }
 
+// ErrInvalidDimension create new ErrInvalidDimension by object.
+func ErrInvalidDimension(obj ...interface{}) error {
+	return fmt.Errorf("Invalid dimension: %v", obj...)
+}
+
 // ErrorShouldBeLength9 create new ErrorshouldBeLength9 by object.
 func ErrorShouldBeLength9(obj ...interface{}) error {
 	return fmt.Errorf("Should be length 9: %v", obj...)
