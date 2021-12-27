@@ -38,7 +38,7 @@ func (s *AbstractSTRtree) build() {
 	s.built = true
 }
 
-// createNode Create a root node.
+// createNode Create a node.
 func (s *AbstractSTRtree) createNode(level int) *AbstractNode {
 	return &AbstractNode{
 		level: level,
@@ -60,7 +60,7 @@ func (s *AbstractSTRtree) createParentBoundables(childBoundables []*AbstractNode
 	parentBoundables = append(parentBoundables, s.createNode(newLevel))
 	sortedChildBoundables := childBoundables
 	sort.Slice(sortedChildBoundables, func(i, j int) bool {
-		return centreY(sortedChildBoundables[i].bounds) > centreY(sortedChildBoundables[j].bounds)
+		return centreY(*sortedChildBoundables[i].bounds) > centreY(*sortedChildBoundables[j].bounds)
 	})
 	for _, childBoundable := range sortedChildBoundables {
 		if len(parentBoundables[len(parentBoundables)-1].childBoundables) == s.nodeCapacity {
@@ -72,15 +72,36 @@ func (s *AbstractSTRtree) createParentBoundables(childBoundables []*AbstractNode
 	return parentBoundables
 }
 
+
+// todo 节点如何用Envelope
 func (s *AbstractSTRtree) Insert(itemEnv *envelope.Envelope, item interface{}) error {
+	s.itemBoundables = append(s.itemBoundables, item.(*AbstractNode))
 	return nil
 }
 
-// Query Queries the index for all items whose extents intersect the given search  Envelope
-// Note that some kinds of indexes may also return objects which do not in fact
-//  intersect the query envelope.
-func (s *AbstractSTRtree) Query(searchEnv *envelope.Envelope) interface{} {
+// Query Also builds the tree, if necessary.
+func (s *AbstractSTRtree) Query(searchBounds *envelope.Envelope) interface{} {
+	s.build()
+	matches := make([]*AbstractNode, 0)
+	if len(matches) == 0 {
+		return matches
+	}
+	if intersects(s.root.bounds, searchBounds) {
+
+	}
+
 	return nil
+}
+
+func (s *AbstractSTRtree) queryInternal(searchBounds *envelope.Envelope, node AbstractNode, matches []*AbstractNode) {
+	childBoundables := node.childBoundables
+	for i := 0; i < len(childBoundables); i++ {
+		childBoundable := childBoundables[i]
+		if !intersects(childBoundable.bounds, searchBounds) {
+			continue
+		}
+		// todo
+	}
 }
 
 // QueryVisitor Queries the index for all items whose extents intersect the given search Envelope,
