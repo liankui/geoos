@@ -23,7 +23,7 @@ func (o *OverlayNG) nodeEdges() (edge matrix.LineMatrix) {
 	mergedEdges := enb.build(o.g0, o.g1)
 	fmt.Printf("mergedEdges:%v\n", mergedEdges)
 
-	//
+	// todo
 
 	return
 }
@@ -41,12 +41,13 @@ func (e *EdgeNodingBuilder) build(g0, g1 matrix.Steric) (mergedEdges []matrix.St
 	return
 }
 
-// todo
+// add ...
 func (e *EdgeNodingBuilder) add(g matrix.LineMatrix, geomIndex int) (matrix.Steric, error) {
 	if g == nil {
 		return nil, nil
 	}
 
+	// todo
 	//var t simplify.Trans
 	//t.transformRing(g, nil)
 
@@ -57,7 +58,7 @@ func (e *EdgeNodingBuilder) add(g matrix.LineMatrix, geomIndex int) (matrix.Ster
 // The input segment strings each carry a EdgeSourceInfo object,
 // which is used to provide source topology info to the constructed Edges (and is then discarded).
 func (e *EdgeNodingBuilder) node() {
-	//e.InputEdges == inputSegStrings
+	// todo e.InputEdges == inputSegStrings
 
 }
 
@@ -75,7 +76,7 @@ type MCIndexNoder struct {
 	overlapTolerance float64
 }
 
-// computeNodes
+// computeNodes ...
 func (m *MCIndexNoder) computeNodes(inputSegStrings []matrix.LineMatrix) {
 	m.nodedSegStrings = inputSegStrings
 	for i, _ := range inputSegStrings {
@@ -83,7 +84,7 @@ func (m *MCIndexNoder) computeNodes(inputSegStrings []matrix.LineMatrix) {
 	}
 }
 
-// add
+// add ...
 func (m *MCIndexNoder) add(InputEdge matrix.LineMatrix) {
 	segChains := chain.Chains(InputEdge)
 	fmt.Printf("=====segChains:%v\n", segChains)
