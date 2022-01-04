@@ -87,7 +87,6 @@ func (s *AbstractSTRtree) createHigherLevels(boundablesOfALevel []*AbstractNode,
 }
 
 // createParentBoundables Sorts the childBoundables then divides them into groups of size M, where M is the node capacity.
-// 这里肯定不是叶子节点，childBoundables先用[]*envelope.Envelope
 func (s *AbstractSTRtree) createParentBoundables(childBoundables []*AbstractNode, newLevel int) []*AbstractNode {
 	var parentBoundablesNode []*AbstractNode
 	parentBoundablesNode = append(parentBoundablesNode, s.createNode(newLevel))

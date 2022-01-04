@@ -10,30 +10,23 @@ type IBoundable interface {
 	getItem() interface{}
 }
 
-// Boundable internal node bounds
-type Boundable struct {
-	bounds []*envelope.Envelope
-}
-
-func (b *Boundable) getBounds() []*envelope.Envelope {
-	return b.bounds
-}
-
-func (b *Boundable) getItem() interface{} {
-	return nil
-}
-
 // ItemBoundable leaf node bounds.
 // Boundable wrapper for a non-Boundable spatial object. Used internally by AbstractSTRtree.
 type ItemBoundable struct {
-	bounds []*envelope.Envelope
-	item   interface{}	// 标识叶子节点，可以为任意值
+	Bounds []*envelope.Envelope `json:"bounds"`
+	Item   interface{}          `json:"item"`
 }
 
 func (i *ItemBoundable) getBounds() []*envelope.Envelope {
-	return i.bounds
+	if i != nil {
+		return i.Bounds
+	}
+	return nil
 }
 
 func (i *ItemBoundable) getItem() interface{} {
-	return i.item
+	if i != nil {
+		return i.Item
+	}
+	return nil
 }
