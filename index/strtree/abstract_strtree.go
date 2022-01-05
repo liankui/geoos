@@ -9,7 +9,7 @@ import (
 const DEFAULT_NODE_CAPACITY = 10
 
 var (
-	itemBoundables []*AbstractNode
+	itemBoundables []Boundable
 	built          bool
 )
 
@@ -33,9 +33,9 @@ func (s *AbstractSTRtree) build() {
 		return
 	}
 	if len(itemBoundables) == 0 {
-		s.Root = s.createNode(0) // 创建根节点
+		s.Root = s.createNode(0)
 	} else {
-		s.Root = s.createHigherLevels(itemBoundables, -1) // 创建父节点、祖节点，直至根节点
+		s.Root = s.createHigherLevels(itemBoundables, -1)
 	}
 	itemBoundables = nil
 	built = true
@@ -64,9 +64,9 @@ func (s *AbstractSTRtree) computeBounds() *envelope.Envelope {
 	var bounds envelope.Envelope
 	for _, childBoundable := range s.Root.ChildBoundables {
 		if bounds.IsNil() {
-			bounds = *childBoundable.Bounds
+			bounds = *childBoundable.getBounds()
 		} else {
-			bounds.ExpandToIncludeEnv(childBoundable.Bounds)
+			bounds.ExpandToIncludeEnv(childBoundable.getBounds())
 		}
 	}
 	return &bounds
@@ -78,26 +78,28 @@ func (s *AbstractSTRtree) computeBounds() *envelope.Envelope {
 // 	level – the level of the Boundables, or -1 if the boundables are item boundables (that is, below level 0)
 // Returns:
 // 	the root, which may be a ParentNode or a LeafNode
-func (s *AbstractSTRtree) createHigherLevels(boundablesOfALevel []*AbstractNode, level int) *AbstractNode {
+func (s *AbstractSTRtree) createHigherLevels(boundablesOfALevel []Boundable, level int) *AbstractNode {
 	parentBoundables := s.createParentBoundables(boundablesOfALevel, level+1)
 	if len(parentBoundables) == 1 {
-		return parentBoundables[0]
+		return (parentBoundables[0]).(*AbstractNode)
 	}
+
 	return s.createHigherLevels(parentBoundables, level+1)
 }
 
 // createParentBoundables Sorts the childBoundables then divides them into groups of size M, where M is the node capacity.
-func (s *AbstractSTRtree) createParentBoundables(childBoundables []*AbstractNode, newLevel int) []*AbstractNode {
-	var parentBoundablesNode []*AbstractNode
+func (s *AbstractSTRtree) createParentBoundables(childBoundables []Boundable, newLevel int) []Boundable {
+	var parentBoundablesNode []Boundable
 	parentBoundablesNode = append(parentBoundablesNode, s.createNode(newLevel))
 
 	sortedChildBoundables := childBoundables
-	sort.Slice(sortedChildBoundables, func(i, j int) bool {	// 根据MaxY和MinY的平均值从大到小排序
-		return centreY(*sortedChildBoundables[i].Bounds) > centreY(*sortedChildBoundables[j].Bounds)
+	// Sort from largest to smallest based on the averages of MaxY and MinY.
+	sort.Slice(sortedChildBoundables, func(i, j int) bool {
+		return centreY(*sortedChildBoundables[i].getBounds()) > centreY(*sortedChildBoundables[j].getBounds())
 	})
 
+	lastNode := parentBoundablesNode[len(parentBoundablesNode)-1].(*AbstractNode)
 	for _, childBoundable := range sortedChildBoundables {
-		lastNode := parentBoundablesNode[len(parentBoundablesNode)-1]
 		if len(lastNode.ChildBoundables) == s.NodeCapacity {
 			parentBoundablesNode = append(parentBoundablesNode, s.createNode(newLevel))
 		}
@@ -106,47 +108,137 @@ func (s *AbstractSTRtree) createParentBoundables(childBoundables []*AbstractNode
 	return parentBoundablesNode
 }
 
+// getRoot Gets the root node of the tree.
+func (s *AbstractSTRtree) getRoot() *AbstractNode {
+	s.build()
+	return s.Root
+}
+
+func (s *AbstractSTRtree) isEmpty() bool {
+	if !built {
+		return len(itemBoundables) == 0
+	}
+	return len(s.getRoot().ChildBoundables) == 0
+}
+
 // Insert ...
-func (s *AbstractSTRtree) Insert(itemEnv *envelope.Envelope, item interface{}) error {
-	//s.itemBoundables = append(s.itemBoundables, item.(*AbstractNode))
+func (s *AbstractSTRtree) Insert(bounds *envelope.Envelope, item interface{}) error {
+	if !built {
+		return index.ErrSTRtreeInsert
+	}
+	itemBoundables = append(itemBoundables, &ItemBoundable{Bounds: bounds, Item: item})
 	return nil
 }
 
 // Query Also builds the tree, if necessary.
 func (s *AbstractSTRtree) Query(searchBounds *envelope.Envelope) interface{} {
 	s.build()
-	matches := make([]*AbstractNode, 0)
-	if len(matches) == 0 {
+	matches := make([]interface{}, 0) // todo 结构未知
+	if s.isEmpty() {
 		return matches
 	}
-	if intersects(s.Root.Bounds, searchBounds) {
-
+	if intersects(s.Root.getBounds(), searchBounds) {
+		s.queryInternal(searchBounds, s.Root, matches)
 	}
+	return matches
+}
 
+// QueryVisitor Also builds the tree, if necessary.
+func (s *AbstractSTRtree) QueryVisitor(searchBounds *envelope.Envelope, visitor index.ItemVisitor) error {
+	s.build()
+	if s.isEmpty() {
+		return nil // todo 没有返回值
+	}
+	if intersects(s.Root.getBounds(), searchBounds) {
+		s.queryVisitorInternal(searchBounds, s.Root, visitor)
+	}
 	return nil
 }
 
 // queryInternal ...
-func (s *AbstractSTRtree) queryInternal(searchBounds *envelope.Envelope, node AbstractNode, matches []*AbstractNode) {
+func (s *AbstractSTRtree) queryInternal(searchBounds *envelope.Envelope, node *AbstractNode, matches []interface{}) {
 	childBoundables := node.ChildBoundables
 	for i := 0; i < len(childBoundables); i++ {
 		childBoundable := childBoundables[i]
-		if !intersects(childBoundable.Bounds, searchBounds) {
+		if !intersects(childBoundable.getBounds(), searchBounds) {
 			continue
 		}
-		// todo
+		switch childBoundable.(type) {
+		case *AbstractNode:
+			s.queryInternal(searchBounds, childBoundable.(*AbstractNode), matches)
+		case *ItemBoundable:
+			matches = append(matches, childBoundable.(*ItemBoundable).getItem())
+		}
 	}
 }
 
-// QueryVisitor Queries the index for all items whose extents intersect the given search Envelope,
-// and applies an  ItemVisitor to them.
-// Note that some kinds of indexes may also return objects which do not in fact
-// intersect the query envelope.
-func (s *AbstractSTRtree) QueryVisitor(queryEnv *envelope.Envelope, visitor index.ItemVisitor) error {
-	return nil
+// queryVisitorInternal ...
+func (s *AbstractSTRtree) queryVisitorInternal(searchBounds *envelope.Envelope, node *AbstractNode, visitor index.ItemVisitor) {
+	childBoundables := node.ChildBoundables
+	for i := 0; i < len(childBoundables); i++ {
+		childBoundable := childBoundables[i]
+		if !intersects(childBoundable.getBounds(), searchBounds) {
+			continue
+		}
+		switch childBoundable.(type) {
+		case *AbstractNode:
+			s.queryVisitorInternal(searchBounds, childBoundable.(*AbstractNode), visitor)
+		case *ItemBoundable:
+			visitor.VisitItem(childBoundable.(*ItemBoundable).getItem())
+		}
+	}
 }
 
-// Remove Removes a single item from the tree.
-func (s *AbstractSTRtree) Remove(itemEnv *envelope.Envelope, item interface{}) bool {
+// Remove Removes an item from the tree. (Builds the tree, if necessary.)
+func (s *AbstractSTRtree) Remove(searchBounds *envelope.Envelope, item interface{}) bool {
+	s.build()
+	if intersects(s.Root.getBounds(), searchBounds) {
+		return s.remove(searchBounds, s.Root, item)
+	}
 	return false
+}
+
+// removeItem ...
+func (s *AbstractSTRtree) removeItem(node *AbstractNode, item interface{}) bool {
+	for i := len(node.ChildBoundables); i >= 0; i++ {
+		childBoundable := node.ChildBoundables[i]
+		switch childBoundable.(type) {
+		case *ItemBoundable:
+			if childBoundable.(*ItemBoundable).getItem() == item {
+				node.ChildBoundables = append(node.ChildBoundables[:i], node.ChildBoundables[i+1:]...)
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// remove ...
+func (s *AbstractSTRtree) remove(searchBounds *envelope.Envelope, node *AbstractNode, item interface{}) bool {
+	found := s.removeItem(node, item)
+	if found {
+		return true
+	}
+
+	var childToPrune *AbstractNode
+	for i := len(node.ChildBoundables); i >= 0; i++ {
+		childBoundable := node.ChildBoundables[i]
+		if !intersects(childBoundable.getBounds(), searchBounds) {
+			continue
+		}
+		switch childBoundable.(type) {
+		case *AbstractNode:
+			found = s.remove(searchBounds, childBoundable.(*AbstractNode), item)
+			if found {
+				childToPrune = childBoundable.(*AbstractNode)
+				if childToPrune != nil {
+					if len(childToPrune.ChildBoundables) == 0 {
+						node.ChildBoundables = append(node.ChildBoundables[:i], node.ChildBoundables[i+1:]...)
+					}
+				}
+				break
+			}
+		}
+	}
+	return found
 }

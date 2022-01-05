@@ -5,19 +5,28 @@ import (
 )
 
 // A node of an AbstractSTRtree. A node is one of:
-// 	- empty
-// 	- an interior node containing child AbstractNodes
-// 	- a leaf node containing data items (ItemBoundables).
+// 	1.empty
+// 	2.an interior node containing child AbstractNodes
+// 	3.a leaf node containing data items (ItemBoundables).
 // A node stores the bounds of its children, and its level within the index tree.
 type AbstractNode struct {
-	ChildBoundables []*AbstractNode    `json:"child_boundables,omitempty"` // 如果是叶子节点，结构为ItemBoundables
+	ChildBoundables []Boundable       `json:"child_boundables,omitempty"`
 	Bounds          *envelope.Envelope `json:"bounds"`
 	Level           int                `json:"level"`
 }
 
-func (a *AbstractNode) addChildBoundable(childBoundable *AbstractNode) {
-	if childBoundable.Bounds.IsNil() {
-		return
+func (a *AbstractNode) addChildBoundable(childBoundable Boundable) {
+	if abstractNode, ok := childBoundable.(*AbstractNode); ok {
+		if abstractNode.Bounds.IsNil() {
+			return
+		}
+		a.ChildBoundables = append(a.ChildBoundables, childBoundable)
 	}
-	a.ChildBoundables = append(a.ChildBoundables, childBoundable)
+}
+
+func (a *AbstractNode) getBounds() *envelope.Envelope {
+	if a != nil {
+		return a.Bounds
+	}
+	return nil
 }
