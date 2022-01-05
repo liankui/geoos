@@ -74,10 +74,10 @@ func (s *AbstractSTRtree) computeBounds() *envelope.Envelope {
 
 // createHigherLevels Creates the levels higher than the given level.
 // Params:
-// 	boundablesOfALevel – the level to build on
-// 	level – the level of the Boundables, or -1 if the boundables are item boundables (that is, below level 0)
+// 	boundablesOfALevel – the level to build on.
+// 	level – the level of the Boundables, or -1 if the boundables are item boundables (that is, below level 0).
 // Returns:
-// 	the root, which may be a ParentNode or a LeafNode
+// 	the root, which may be a ParentNode or a LeafNode.
 func (s *AbstractSTRtree) createHigherLevels(boundablesOfALevel []Boundable, level int) *AbstractNode {
 	parentBoundables := s.createParentBoundables(boundablesOfALevel, level+1)
 	if len(parentBoundables) == 1 {
@@ -114,6 +114,7 @@ func (s *AbstractSTRtree) getRoot() *AbstractNode {
 	return s.Root
 }
 
+// isEmpty ...
 func (s *AbstractSTRtree) isEmpty() bool {
 	if !built {
 		return len(itemBoundables) == 0
@@ -122,7 +123,7 @@ func (s *AbstractSTRtree) isEmpty() bool {
 }
 
 // Insert ...
-func (s *AbstractSTRtree) Insert(bounds *envelope.Envelope, item interface{}) error {
+func (s *AbstractSTRtree) insert(bounds *envelope.Envelope, item interface{}) error {
 	if !built {
 		return index.ErrSTRtreeInsert
 	}
@@ -131,7 +132,7 @@ func (s *AbstractSTRtree) Insert(bounds *envelope.Envelope, item interface{}) er
 }
 
 // Query Also builds the tree, if necessary.
-func (s *AbstractSTRtree) Query(searchBounds *envelope.Envelope) interface{} {
+func (s *AbstractSTRtree) query(searchBounds *envelope.Envelope) interface{} {
 	s.build()
 	matches := make([]interface{}, 0) // todo 结构未知
 	if s.isEmpty() {
@@ -144,7 +145,7 @@ func (s *AbstractSTRtree) Query(searchBounds *envelope.Envelope) interface{} {
 }
 
 // QueryVisitor Also builds the tree, if necessary.
-func (s *AbstractSTRtree) QueryVisitor(searchBounds *envelope.Envelope, visitor index.ItemVisitor) error {
+func (s *AbstractSTRtree) queryVisitor(searchBounds *envelope.Envelope, visitor index.ItemVisitor) error {
 	s.build()
 	if s.isEmpty() {
 		return nil // todo 没有返回值
@@ -190,10 +191,10 @@ func (s *AbstractSTRtree) queryVisitorInternal(searchBounds *envelope.Envelope, 
 }
 
 // Remove Removes an item from the tree. (Builds the tree, if necessary.)
-func (s *AbstractSTRtree) Remove(searchBounds *envelope.Envelope, item interface{}) bool {
+func (s *AbstractSTRtree) remove(searchBounds *envelope.Envelope, item interface{}) bool {
 	s.build()
 	if intersects(s.Root.getBounds(), searchBounds) {
-		return s.remove(searchBounds, s.Root, item)
+		return s.removeNode(searchBounds, s.Root, item)
 	}
 	return false
 }
@@ -214,7 +215,7 @@ func (s *AbstractSTRtree) removeItem(node *AbstractNode, item interface{}) bool 
 }
 
 // remove ...
-func (s *AbstractSTRtree) remove(searchBounds *envelope.Envelope, node *AbstractNode, item interface{}) bool {
+func (s *AbstractSTRtree) removeNode(searchBounds *envelope.Envelope, node *AbstractNode, item interface{}) bool {
 	found := s.removeItem(node, item)
 	if found {
 		return true
@@ -228,7 +229,7 @@ func (s *AbstractSTRtree) remove(searchBounds *envelope.Envelope, node *Abstract
 		}
 		switch childBoundable.(type) {
 		case *AbstractNode:
-			found = s.remove(searchBounds, childBoundable.(*AbstractNode), item)
+			found = s.removeNode(searchBounds, childBoundable.(*AbstractNode), item)
 			if found {
 				childToPrune = childBoundable.(*AbstractNode)
 				if childToPrune != nil {

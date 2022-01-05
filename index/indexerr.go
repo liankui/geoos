@@ -20,4 +20,7 @@ var ErrTreeIsNil = fmt.Errorf("Index is nil")
 var ErrNotMatchType = fmt.Errorf("Operation does not support not match type arguments")
 
 // ErrSTRtreeInsert ...
-var ErrSTRtreeInsert = fmt.Errorf("Cannot insert items into an STR packed R-tree after it has been built.")
+var ErrSTRtreeInsert = fmt.Errorf("STRtree it has been built")
+
+// ErrSTRtreeInsert ...
+var ErrSTRtreeBoundsIsNil = fmt.Errorf("STRtree insert the bounds is nil")
