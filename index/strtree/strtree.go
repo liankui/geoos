@@ -36,13 +36,13 @@ func (s *STRtree) CreateParentBoundables(childBoundables []Boundable, newLevel i
 	if len(childBoundables) == 0 {
 		return nil
 	}
-	minLeafCount := math.Ceil(float64(len(childBoundables))) / float64(s.NodeCapacity)
+	minLeafCount := int(math.Ceil(float64(len(childBoundables))) / float64(s.NodeCapacity))
 	sortedChildBoundables := childBoundables
 	// Sort from largest to smallest based on the averages of MaxX and MinX.
 	sort.Slice(sortedChildBoundables, func(i, j int) bool {
 		return centreX(*sortedChildBoundables[i].getBounds()) > centreX(*sortedChildBoundables[j].getBounds())
 	})
-	verticalSlices := s.verticalSlices(sortedChildBoundables, int(math.Ceil(math.Sqrt(minLeafCount))))
+	verticalSlices := s.verticalSlices(sortedChildBoundables, int(math.Ceil(math.Sqrt(float64(minLeafCount)))))
 	return s.createParentBoundablesFromVerticalSlices(verticalSlices, newLevel)
 }
 

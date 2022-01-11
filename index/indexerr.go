@@ -24,3 +24,9 @@ var ErrSTRtreeInsert = fmt.Errorf("STRtree it has been built")
 
 // ErrSTRtreeInsert ...
 var ErrSTRtreeBoundsIsNil = fmt.Errorf("STRtree insert the bounds is nil")
+
+// ErrSTRtreeNeverReach ...
+var ErrSTRtreeNeverReach = fmt.Errorf("should never reach here")
+
+// ErrSTRtreeIsEmpty ...
+var ErrSTRtreeIsEmpty = fmt.Errorf("STRtree is empty")
