@@ -25,6 +25,11 @@ type AbstractSTRtree struct {
 	NodeCapacity int           `json:"node_capacity"`
 }
 
+// getItemBoundables
+func (s *AbstractSTRtree) getItemBoundables() []Boundable {
+	return itemBoundables
+}
+
 // build Creates parent nodes, grandparent nodes, and so forth up to the root node,
 // for the data that has been inserted into the tree.
 // Can only be called once, and thus can be called only after all of the data has been inserted into the tree.
@@ -73,7 +78,7 @@ func (s *AbstractSTRtree) createHigherLevels(boundablesOfALevel []Boundable, lev
 	return s.createHigherLevels(parentBoundables, level+1)
 }
 
-// createParentBoundables Sorts the childBoundables then divides them into groups of size M, where M is the node capacity.
+// createParentBoundables Sorts the childBoundables then divides them into groups of getSize M, where M is the node capacity.
 func (s *AbstractSTRtree) createParentBoundables(childBoundables []Boundable, newLevel int) []Boundable {
 	if len(childBoundables) == 0 {
 		return nil
@@ -81,15 +86,16 @@ func (s *AbstractSTRtree) createParentBoundables(childBoundables []Boundable, ne
 	var parentBoundablesNode []Boundable
 	parentBoundablesNode = append(parentBoundablesNode, s.createNode(newLevel))
 	sortedChildBoundables := childBoundables
+	// Sort from largest to smallest based on the averages of MaxY and MinY.
 	sort.Slice(sortedChildBoundables, func(i, j int) bool {
 		return centreY(*sortedChildBoundables[i].getBounds()) > centreY(*sortedChildBoundables[j].getBounds())
 	})
-	lastNode := parentBoundablesNode[len(parentBoundablesNode)-1].(*AbstractNode)
+
 	for _, childBoundable := range sortedChildBoundables {
-		if len(lastNode.ChildBoundables) == s.NodeCapacity {
+		if len(parentBoundablesNode[len(parentBoundablesNode)-1].(*AbstractNode).ChildBoundables) == s.NodeCapacity {
 			parentBoundablesNode = append(parentBoundablesNode, s.createNode(newLevel))
 		}
-		lastNode.addChildBoundable(childBoundable)
+		parentBoundablesNode[len(parentBoundablesNode)-1].(*AbstractNode).addChildBoundable(childBoundable)
 	}
 	return parentBoundablesNode
 }
@@ -110,7 +116,7 @@ func (s *AbstractSTRtree) isEmpty() bool {
 
 // Insert ...
 func (s *AbstractSTRtree) insert(bounds *envelope.Envelope, item interface{}) error {
-	if !built {
+	if built {
 		return index.ErrSTRtreeInsert
 	}
 	itemBoundables = append(itemBoundables, &ItemBoundable{Bounds: bounds, Item: item})
@@ -191,7 +197,7 @@ func (s *AbstractSTRtree) remove(searchBounds *envelope.Envelope, item interface
 
 // removeItem ...
 func (s *AbstractSTRtree) removeItem(node *AbstractNode, item interface{}) bool {
-	for i := len(node.ChildBoundables); i >= 0; i++ {
+	for i := len(node.ChildBoundables) - 1; i >= 0; i-- {
 		childBoundable := node.ChildBoundables[i]
 		switch childBoundable.(type) {
 		case *ItemBoundable:
@@ -213,7 +219,7 @@ func (s *AbstractSTRtree) removeNode(searchBounds *envelope.Envelope, node *Abst
 	}
 	// next try removing item from lower nodes
 	var childToPrune *AbstractNode
-	for i := len(node.ChildBoundables); i >= 0; i++ {
+	for i := len(node.ChildBoundables) - 1; i >= 0; i-- {
 		childBoundable := node.ChildBoundables[i]
 		if !intersects(childBoundable.getBounds(), searchBounds) {
 			continue
@@ -233,4 +239,26 @@ func (s *AbstractSTRtree) removeNode(searchBounds *envelope.Envelope, node *Abst
 		}
 	}
 	return found
+}
+
+// size Returns the number of items in the tree.
+func (s *AbstractSTRtree) size() int {
+	if s.isEmpty() {
+		return 0
+	}
+	s.build()
+	return s.getSize(s.Root)
+}
+
+// getSize ...
+func (s *AbstractSTRtree) getSize(node *AbstractNode) (size int) {
+	for _, childBoundable := range node.ChildBoundables {
+		switch childBoundable.(type) {
+		case *AbstractNode:
+			size += s.getSize(childBoundable.(*AbstractNode))
+		case *ItemBoundable:
+			size++
+		}
+	}
+	return
 }

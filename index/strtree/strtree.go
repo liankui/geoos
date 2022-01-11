@@ -30,7 +30,7 @@ func intersects(a, b *envelope.Envelope) bool {
 // CreateParentBoundables Creates the parent level for the given child level.
 // First, orders the items by the x-values of the midpoints, and groups them into vertical slices.
 // For each slice, orders the items by the y-values of the midpoints,
-// and group them into runs of size M (the node capacity).
+// and group them into runs of Size M (the node capacity).
 // For each run, creates a new (parent) node.
 func (s *STRtree) CreateParentBoundables(childBoundables []Boundable, newLevel int) []Boundable {
 	if len(childBoundables) == 0 {
@@ -48,14 +48,15 @@ func (s *STRtree) CreateParentBoundables(childBoundables []Boundable, newLevel i
 
 // verticalSlices...
 func (s *STRtree) verticalSlices(childBoundables []Boundable, sliceCount int) [][]Boundable {
-	sliceCapacity :=  int(math.Ceil(float64(len(childBoundables))) / float64(sliceCount))
+	sliceCapacity := int(math.Ceil(float64(len(childBoundables)) / float64(sliceCount)))
 	slices := make([][]Boundable, sliceCount)
-	for j := 0; j < sliceCount; j++ {
+	for i, j := 0, 0; j < sliceCount; j++ {
 		slices[j] = []Boundable{}
 		boundablesAddedToSlice := 0
-		for i := 0; i < len(childBoundables) && boundablesAddedToSlice < sliceCapacity; i++ {
+		for i < len(childBoundables) && boundablesAddedToSlice < sliceCapacity {
 			slices[j] = append(slices[j], childBoundables[i])
 			boundablesAddedToSlice++
+			i++
 		}
 	}
 	return slices
@@ -109,4 +110,9 @@ func (s *STRtree) QueryVisitor(searchBounds *envelope.Envelope, visitor index.It
 //		true if the item was found
 func (s *STRtree) Remove(searchBounds *envelope.Envelope, item interface{}) bool {
 	return s.remove(searchBounds, item)
+}
+
+// Size Returns the number of items in the tree.
+func (s *STRtree) Size() int {
+	return s.size()
 }

@@ -7,7 +7,7 @@ import (
 // A node of an AbstractSTRtree. A node is one of:
 // 	1.empty
 // 	2.an interior node containing child AbstractNodes
-// 	3.a leaf node containing data items (ItemBoundables).
+// 	3.a leaf node containing data items (itemBoundables).
 // A node stores the bounds of its children, and its level within the index tree.
 type AbstractNode struct {
 	ChildBoundables []Boundable        `json:"child_boundables,omitempty"`
