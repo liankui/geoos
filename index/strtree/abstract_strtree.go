@@ -126,7 +126,7 @@ func (s *AbstractSTRtree) insert(bounds *envelope.Envelope, item interface{}) er
 // Query Also builds the tree, if necessary.
 func (s *AbstractSTRtree) query(searchBounds *envelope.Envelope) interface{} {
 	s.build()
-	matches := make([]interface{}, 0) // todo 结构未知
+	matches := make([]interface{}, 0)
 	if s.isEmpty() {
 		return matches
 	}
