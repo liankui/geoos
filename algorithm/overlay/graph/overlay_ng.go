@@ -4,62 +4,79 @@ import (
 	"fmt"
 	"github.com/spatial-go/geoos/algorithm/matrix"
 	"github.com/spatial-go/geoos/algorithm/overlay/chain"
+	"github.com/spatial-go/geoos/algorithm/overlay/graph/noding"
+	"github.com/spatial-go/geoos/space"
+)
+
+const (
+	STRICT_MODE_DEFAULT = false // todo
+	isStrictMode        = STRICT_MODE_DEFAULT
+	isOptimized         = true
+	isAreaResultOnly    = false
+	isOutputEdges       = false
+	isOutputResultEdges = false
+	isOutputNodedEdges  = false
 )
 
 type OverlayNG struct {
-	g0, g1         matrix.Steric
+	G0, G1         space.Geometry
 	PrecisionModel string
-	Noder          interface{}
+	OpCode         int
+	Noder          noding.Noder
 }
 
 // overlay 主函数入口，得到计算后的多边形
-func (*OverlayNG) overlay(g0, g1 matrix.Steric) {
-
+func (o *OverlayNG) overlay(g0, g1 space.Geometry, opCode int) space.Geometry {
+	ov := OverlayNG{ // todo 类型字段的确定
+		G0:             g0,
+		G1:             g1,
+		PrecisionModel: "Floating",
+		OpCode:         opCode,
+		Noder:          nil,
+	}
+	return ov.getResult()
 }
 
-// nodeEdges new edge
+// getResult...
+func (o *OverlayNG) getResult() space.Geometry {
+	// 步骤1： handle empty inputs which determine result
+
+	// 步骤2： The elevation model is only computed if the input geometries have Z values.
+
+	// handle case where both inputs are formed of edges (Lines and Polygons)
+	return o.computeEdgeOverlay()
+}
+
+// computeEdgeOverlay...
+func (o *OverlayNG) computeEdgeOverlay() space.Geometry {
+	edges := o.nodeEdges()
+
+	fmt.Println(edges)
+	return nil
+}
+
+// nodeEdges new edges
 func (o *OverlayNG) nodeEdges() (edge matrix.LineMatrix) {
-	var enb EdgeNodingBuilder
-	mergedEdges := enb.build(o.g0, o.g1)
-	fmt.Printf("mergedEdges:%v\n", mergedEdges)
+	// Node the edges, using whatever noder is being used
+	nodingBuilder := NewEdgeNodingBuilder(o.PrecisionModel, o.Noder)
 
-	// todo
+	// Optimize Intersection and Difference by clipping to the
+	// result extent, if enabled.
+	if isOptimized {
 
-	return
-}
-
-type EdgeNodingBuilder struct {
-	InputEdges []matrix.LineMatrix
-}
-
-// build Creates a set of labelled {Edge}s.
-// Representing the fully noded edges of the input geometries.
-// Coincident edges (from the same or both geometries) are merged along with their labels into a single unique, fully labelled edge.
-func (e *EdgeNodingBuilder) build(g0, g1 matrix.Steric) (mergedEdges []matrix.Steric) {
-	mergedEdges = append(mergedEdges, g0)
-	mergedEdges = append(mergedEdges, g1)
-	return
-}
-
-// add ...
-func (e *EdgeNodingBuilder) add(g matrix.LineMatrix, geomIndex int) (matrix.Steric, error) {
-	if g == nil {
-		return nil, nil
 	}
 
-	// todo
-	//var t simplify.Trans
-	//t.transformRing(g, nil)
+	//
+	mergedEdges := nodingBuilder.build(o.G0, o.G1)
+	fmt.Printf("mergedEdges:%v\n", mergedEdges)
 
-	return nil, nil
-}
+	// Optimize Intersection and Difference by clipping to the
+	// result extent, if enabled.
+	if isOptimized {
 
-// Nodes a set of segment strings and creates Edges from the result.
-// The input segment strings each carry a EdgeSourceInfo object,
-// which is used to provide source topology info to the constructed Edges (and is then discarded).
-func (e *EdgeNodingBuilder) node() {
-	// todo e.InputEdges == inputSegStrings
+	}
 
+	return
 }
 
 // MCIndexNoder Nodes a set of SegmentStrings using a index based on MonotoneChains and a SpatialIndex.

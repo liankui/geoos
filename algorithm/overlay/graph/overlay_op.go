@@ -1,5 +1,5 @@
 // Package operation define valid func for geometries.
-package operation
+package graph
 
 import (
 	"github.com/spatial-go/geoos/algorithm"

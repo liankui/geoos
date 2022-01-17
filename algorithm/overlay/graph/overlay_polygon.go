@@ -4,7 +4,6 @@ import (
 	"github.com/spatial-go/geoos/algorithm"
 	"github.com/spatial-go/geoos/algorithm/matrix"
 	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
-	"github.com/spatial-go/geoos/algorithm/operation"
 	"github.com/spatial-go/geoos/algorithm/overlay"
 	"github.com/spatial-go/geoos/algorithm/relate"
 )
@@ -92,11 +91,11 @@ func (p *PolygonOverlay) Union() (matrix.Steric, error) {
 
 // Intersection  Computes the Intersection of two geometries,either or both of which may be nil.
 func (p *PolygonOverlay) Intersection() (matrix.Steric, error) {
-	op := &operation.OverlayOp{}
+	op := &OverlayOp{}
 
 	// special case: if one input is empty ==> empty
 	if p.Subject.IsEmpty() || p.Clipping.IsEmpty() {
-		return op.CreateEmptyResult(operation.INTERSECTION, p.Subject, p.Clipping)
+		return op.CreateEmptyResult(INTERSECTION, p.Subject, p.Clipping)
 	}
 
 	//switch p.Subject.(type) {
@@ -104,7 +103,7 @@ func (p *PolygonOverlay) Intersection() (matrix.Steric, error) {
 	//
 	//}
 
-	return op.Overlay(p.Subject, p.Clipping, operation.INTERSECTION)
+	return op.Overlay(p.Subject, p.Clipping, INTERSECTION)
 }
 
 // Difference returns a geometry that represents that part of geometry A that does not intersect with geometry B.
