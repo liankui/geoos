@@ -11,6 +11,7 @@ type ItemBoundable struct {
 	Item   interface{}        `json:"item"`
 }
 
+// getBounds...
 func (i *ItemBoundable) getBounds() *envelope.Envelope {
 	if i != nil {
 		return i.Bounds
@@ -18,6 +19,7 @@ func (i *ItemBoundable) getBounds() *envelope.Envelope {
 	return nil
 }
 
+// getItem...
 func (i *ItemBoundable) getItem() interface{} {
 	if i != nil {
 		return i.Item

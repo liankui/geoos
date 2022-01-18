@@ -11,26 +11,30 @@ type STRtree struct {
 	*AbstractSTRtree
 }
 
+// centreY
 func centreX(e envelope.Envelope) float64 {
 	return avg(e.MinX, e.MaxX)
 }
 
+// centreY...
 func centreY(e envelope.Envelope) float64 {
 	return avg(e.MinY, e.MaxY)
 }
 
+// avg...
 func avg(a, b float64) float64 {
 	return (a + b) / 2.0
 }
 
+// intersects...
 func intersects(a, b *envelope.Envelope) bool {
 	return a.IsIntersects(b)
 }
 
 // CreateParentBoundables Creates the parent level for the given child level.
-// First, orders the items by the x-values of the midpoints, and groups them into vertical slices.
-// For each slice, orders the items by the y-values of the midpoints,
-// and group them into runs of Size M (the node capacity).
+// First, orders the items by the x-values of the midpoints, and groups them
+// into vertical slices. For each slice, orders the items by the y-values of
+// the midpoints, and group them into runs of Size M (the node capacity).
 // For each run, creates a new (parent) node.
 func (s *STRtree) CreateParentBoundables(childBoundables []Boundable, newLevel int) []Boundable {
 	if len(childBoundables) == 0 {
@@ -80,6 +84,7 @@ func (s *STRtree) createParentBoundablesFromVerticalSlice(childBoundables []Boun
 	return s.createParentBoundables(childBoundables, newLevel)
 }
 
+// CreateNode...
 func (s *STRtree) CreateNode(level int) *AbstractNode {
 	return s.createNode(level)
 }

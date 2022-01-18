@@ -5,9 +5,9 @@ import (
 )
 
 // A node of an AbstractSTRtree. A node is one of:
-// 	1.empty
-// 	2.an interior node containing child AbstractNodes
-// 	3.a leaf node containing data items (itemBoundables).
+//		1.empty
+//		2.an interior node containing child AbstractNodes
+//		3.a leaf node containing data items (itemBoundables).
 // A node stores the bounds of its children, and its level within the index tree.
 type AbstractNode struct {
 	ChildBoundables []Boundable        `json:"child_boundables,omitempty"`
@@ -25,10 +25,14 @@ func (a *AbstractNode) getBounds() *envelope.Envelope {
 	return a.Bounds
 }
 
-// computeBounds Returns a representation of space that encloses this Boundable, preferably not much bigger than
-// this Boundable's boundary yet fast to test for intersection with the bounds of other Boundables.
-// The class of object returned depends on the subclass of AbstractSTRtree.
-// Returns: an Envelope (for STRtrees), an Interval (for SIRtrees), or other object (for other subclasses of AbstractSTRtree)
+// computeBounds Returns a representation of space that encloses this Boundable,
+// preferably not much bigger than this Boundable's boundary yet fast to test
+// for intersection with the bounds of other Boundables. The class of object
+// returned depends on the subclass of AbstractSTRtree.
+// Returns:
+//		an Envelope (for STRtrees),
+//		an Interval (for SIRtrees),
+//		or other object (for other subclasses of AbstractSTRtree)
 func (a *AbstractNode) computeBounds() *envelope.Envelope {
 	var bounds envelope.Envelope
 	for _, childBoundable := range a.ChildBoundables {
@@ -41,7 +45,8 @@ func (a *AbstractNode) computeBounds() *envelope.Envelope {
 	return &bounds
 }
 
-// addChildBoundable Adds either an AbstractNode, or if this is a leaf node, a data object (wrapped in an ItemBoundable)
+// addChildBoundable Adds either an AbstractNode, or if this is a leaf node,
+// a data object (wrapped in an ItemBoundable)
 // Params:
 //		childBoundable – the child to add
 func (a *AbstractNode) addChildBoundable(childBoundable Boundable) {

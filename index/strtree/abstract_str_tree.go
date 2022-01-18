@@ -13,26 +13,26 @@ var (
 	built          bool
 )
 
-// A query-only R-tree created using the Sort-Tile-Recursive (STR) algorithm. For two-dimensional spatial data.
-// The STR packed R-tree is simple to implement and maximizes space utilization;
-// that is, as many leaves as possible are filled to capacity.
-// Overlap between nodes is far less than in a basic R-tree.
-// However, the index is semi-static; once the tree has been built (which happens automatically upon the first query),
-// items may not be added.
+// A query-only R-tree created using the Sort-Tile-Recursive (STR) algorithm.
+// For two-dimensional spatial data. The STR packed R-tree is simple to implement
+// and maximizes space utilization; that is, as many leaves as possible are filled
+// to capacity. Overlap between nodes is far less than in a basic R-tree.
+// However, the index is semi-static; once the tree has been built (which happens
+// automatically upon the first query), items may not be added.
 // Items may be removed from the tree using remove(Envelope, Object).
 type AbstractSTRtree struct {
 	Root         *AbstractNode `json:"root"`
 	NodeCapacity int           `json:"node_capacity"`
 }
 
-// getItemBoundables
+// getItemBoundables...
 func (s *AbstractSTRtree) getItemBoundables() []Boundable {
 	return itemBoundables
 }
 
 // build Creates parent nodes, grandparent nodes, and so forth up to the root node,
-// for the data that has been inserted into the tree.
-// Can only be called once, and thus can be called only after all of the data has been inserted into the tree.
+// for the data that has been inserted into the tree. Can only be called once,
+// and thus can be called only after all of the data has been inserted into the tree.
 func (s *AbstractSTRtree) build() {
 	if built {
 		return
@@ -90,7 +90,6 @@ func (s *AbstractSTRtree) createParentBoundables(childBoundables []Boundable, ne
 	sort.Slice(sortedChildBoundables, func(i, j int) bool {
 		return centreY(*sortedChildBoundables[i].getBounds()) > centreY(*sortedChildBoundables[j].getBounds())
 	})
-
 	for _, childBoundable := range sortedChildBoundables {
 		if len(parentBoundablesNode[len(parentBoundablesNode)-1].(*AbstractNode).ChildBoundables) == s.NodeCapacity {
 			parentBoundablesNode = append(parentBoundablesNode, s.createNode(newLevel))
