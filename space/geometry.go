@@ -2,6 +2,7 @@ package space
 
 import (
 	"github.com/spatial-go/geoos/algorithm/matrix"
+	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 )
 
 // const geomtype
@@ -70,10 +71,20 @@ type Geometry interface {
 	// Distance returns distance Between the two Geometry.
 	Distance(g Geometry) (float64, error)
 
-	// Envelope returns the  minimum bounding box for the supplied geometry, as a geometry.
+	// Envelope returns the minimum bounding box for the supplied geometry, as a geometry.
 	// The polygon is defined by the corner points of the bounding box
 	// ((MINX, MINY), (MINX, MAXY), (MAXX, MAXY), (MAXX, MINY), (MINX, MINY)).
 	Envelope() Geometry
+
+	// Gets an Envelope containing the minimum and maximum x and y values in this Geometry.
+	// If the geometry is empty, an empty Envelope is returned.
+	// The returned object is a copy of the one maintained internally, to avoid aliasing
+	// issues. For best performance, clients which access this envelope frequently should
+	// cache the return value.
+	ComputeEnvelopeInternal() *envelope.Envelope
+
+	// Get internal envelop.
+	GetEnvelopeInternal() *envelope.Envelope
 
 	// Equals returns true if the Geometry represents the same Geometry or vector.
 	Equals(g Geometry) bool

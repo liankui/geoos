@@ -1,6 +1,7 @@
 package space
 
 import (
+	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"math"
 
 	"github.com/spatial-go/geoos/algorithm/calc"
@@ -91,6 +92,16 @@ func (c *Circle) Buffer(width float64, quadsegs int) Geometry {
 // ((MINX, MINY), (MINX, MAXY), (MAXX, MAXY), (MAXX, MINY), (MINX, MINY)).
 func (c *Circle) Envelope() Geometry {
 	return c.Bound().ToPolygon()
+}
+
+// ComputeEnvelopeInternal...
+func (c *Circle) ComputeEnvelopeInternal() *envelope.Envelope {
+	return nil
+}
+
+// GetEnvelopeInternal get circle internal envelop.
+func (c *Circle) GetEnvelopeInternal() *envelope.Envelope {
+	return nil
 }
 
 // IsClosed Returns TRUE if the LINESTRING's start and end points are coincident.

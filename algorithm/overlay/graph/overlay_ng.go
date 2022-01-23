@@ -30,7 +30,7 @@ func (o *OverlayNG) overlay(g0, g1 space.Geometry, opCode int) space.Geometry {
 	ov := OverlayNG{ // todo 类型字段的确定
 		G0:             g0,
 		G1:             g1,
-		PrecisionModel: "Floating",
+		PrecisionModel: "FLOATING",
 		OpCode:         opCode,
 		Noder:          nil,
 	}
@@ -49,15 +49,18 @@ func (o *OverlayNG) getResult() space.Geometry {
 
 // computeEdgeOverlay...
 func (o *OverlayNG) computeEdgeOverlay() space.Geometry {
+	// 1
 	edges := o.nodeEdges()
+	o.buildGraph(edges)
 
 	fmt.Println(edges)
 	return nil
 }
 
-// nodeEdges new edges
-func (o *OverlayNG) nodeEdges() (edge matrix.LineMatrix) {
+// nodeEdges...
+func (o *OverlayNG) nodeEdges() (edges []matrix.LineMatrix) {
 	// Node the edges, using whatever noder is being used
+	// 1。1
 	nodingBuilder := NewEdgeNodingBuilder(o.PrecisionModel, o.Noder)
 
 	// Optimize Intersection and Difference by clipping to the
@@ -66,7 +69,7 @@ func (o *OverlayNG) nodeEdges() (edge matrix.LineMatrix) {
 
 	}
 
-	//
+	// 1。3
 	mergedEdges := nodingBuilder.build(o.G0, o.G1)
 	fmt.Printf("mergedEdges:%v\n", mergedEdges)
 
@@ -77,6 +80,14 @@ func (o *OverlayNG) nodeEdges() (edge matrix.LineMatrix) {
 	}
 
 	return
+}
+
+// buildGraph...
+func (o *OverlayNG) buildGraph(edges []matrix.LineMatrix) {
+	var graph OverlayGraph
+	for _, e := range edges {
+		graph.addEdge(e.Bound(), e.cre)
+	}
 }
 
 // MCIndexNoder Nodes a set of SegmentStrings using a index based on MonotoneChains and a SpatialIndex.

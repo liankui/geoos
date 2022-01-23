@@ -4,6 +4,7 @@ import (
 	"github.com/spatial-go/geoos/algorithm/buffer"
 	"github.com/spatial-go/geoos/algorithm/buffer/simplify"
 	"github.com/spatial-go/geoos/algorithm/matrix"
+	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"github.com/spatial-go/geoos/algorithm/measure"
 	"github.com/spatial-go/geoos/algorithm/operation"
 )
@@ -205,6 +206,16 @@ func (mp MultiPolygon) BufferInMeter(width float64, quadsegs int) Geometry {
 // ((MINX, MINY), (MINX, MAXY), (MAXX, MAXY), (MAXX, MINY), (MINX, MINY)).
 func (mp MultiPolygon) Envelope() Geometry {
 	return mp.Bound().ToPolygon()
+}
+
+// ComputeEnvelopeInternal...
+func (mp MultiPolygon) ComputeEnvelopeInternal() *envelope.Envelope {
+	return nil
+}
+
+// GetEnvelopeInternal get multiPolygon internal envelop.
+func (mp MultiPolygon) GetEnvelopeInternal() *envelope.Envelope {
+	return nil
 }
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry

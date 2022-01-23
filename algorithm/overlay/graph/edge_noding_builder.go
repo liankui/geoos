@@ -101,7 +101,7 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 	if ring.IsEmpty() {
 		return
 	}
-	//if e.isClippedCompletely(ring.getEnvelopeInternal()) {} // todo ring如何和envelop结构相关联
+	if e.isClippedCompletely(ring.getEnvelopeInternal()) {} // todo ring如何和envelop结构相关联
 
 	//pts = e.clip(ring)	// todo
 	//if len(pts) < 2 {

@@ -1,6 +1,7 @@
 package space
 
 import (
+	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"math"
 
 	"github.com/spatial-go/geoos/algorithm/matrix"
@@ -271,6 +272,16 @@ func (b Bound) BufferInMeter(width float64, quadsegs int) Geometry {
 // ((MINX, MINY), (MINX, MAXY), (MAXX, MAXY), (MAXX, MINY), (MINX, MINY)).
 func (b Bound) Envelope() Geometry {
 	return b.ToPolygon()
+}
+
+// ComputeEnvelopeInternal...
+func (b Bound) ComputeEnvelopeInternal() *envelope.Envelope {
+	return nil
+}
+
+// GetEnvelopeInternal get collection internal envelop.
+func (b Bound) GetEnvelopeInternal() *envelope.Envelope {
+	return nil
 }
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry

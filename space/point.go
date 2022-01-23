@@ -1,6 +1,7 @@
 package space
 
 import (
+	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"math/rand"
 	"reflect"
 
@@ -189,6 +190,21 @@ func (p Point) BufferInMeter(width float64, quadsegs int) Geometry {
 // ((MINX, MINY), (MINX, MAXY), (MAXX, MAXY), (MAXX, MINY), (MINX, MINY)).
 func (p Point) Envelope() Geometry {
 	return p
+}
+
+// ComputeEnvelopeInternal returns nil or expand point matrix to envelope.
+func (p Point) ComputeEnvelopeInternal() *envelope.Envelope {
+	if p.IsEmpty() {
+		return envelope.Empty()
+	}
+	env := envelope.Empty()
+	env.ExpandToInclude(p[0], p[1])
+	return env
+}
+
+// GetEnvelopeInternal get point internal envelop.
+func (p Point) GetEnvelopeInternal() *envelope.Envelope {
+	return nil
 }
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry

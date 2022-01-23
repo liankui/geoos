@@ -4,6 +4,7 @@ import (
 	"github.com/spatial-go/geoos/algorithm/buffer"
 	"github.com/spatial-go/geoos/algorithm/buffer/simplify"
 	"github.com/spatial-go/geoos/algorithm/matrix"
+	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"github.com/spatial-go/geoos/algorithm/measure"
 	"github.com/spatial-go/geoos/algorithm/operation"
 	"github.com/spatial-go/geoos/space/spaceerr"
@@ -218,6 +219,28 @@ func (ls LineString) BufferInMeter(width float64, quadsegs int) Geometry {
 // ((MINX, MINY), (MINX, MAXY), (MAXX, MAXY), (MAXX, MINY), (MINX, MINY)).
 func (ls LineString) Envelope() Geometry {
 	return ls.Bound().ToPolygon()
+}
+
+// ComputeEnvelopeInternal returns nil or expand point matrix to envelope.
+func (ls LineString) ComputeEnvelopeInternal() *envelope.Envelope {
+	if ls.IsEmpty() {
+		return envelope.Empty()
+	}
+	return ls.expandEnvelope(envelope.Empty())
+}
+
+// GetEnvelopeInternal get lineString internal envelop.
+func (ls LineString) GetEnvelopeInternal() *envelope.Envelope {
+	return nil
+}
+
+// expandEnvelope LineString expend envelop.
+func (ls LineString) expandEnvelope(env *envelope.Envelope) *envelope.Envelope {
+	matrices := ls.ToMatrix().Bound()	// 需要验证这样写是否正确
+	for _, m := range matrices {
+		env.ExpandToInclude(m[0], m[1])
+	}
+	return env
 }
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry
