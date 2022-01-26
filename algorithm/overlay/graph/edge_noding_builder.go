@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"github.com/spatial-go/geoos/algorithm/matrix"
 	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"github.com/spatial-go/geoos/algorithm/overlay/graph/noding"
 	"github.com/spatial-go/geoos/space"
@@ -14,9 +15,11 @@ const (
 
 type EdgeNodingBuilder struct {
 	precisionModel string
+	inputEdges     []noding.NodedSegmentString
 	customNoder    noding.Noder
 	clipEnv        *envelope.Envelope
-	inputEdges     []noding.NodedSegmentString
+	clipper        *RingClipper
+	limiter        *LineLimiter
 }
 
 // NewEdgeNodingBuilder...
@@ -101,9 +104,11 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 	if ring.IsEmpty() {
 		return
 	}
-	if e.isClippedCompletely(ring.getEnvelopeInternal()) {} // todo ring如何和envelop结构相关联
-
+	if e.isClippedCompletely(ring.GetEnvelopeInternal()) {
+		return
+	}
 	//pts = e.clip(ring)	// todo
+
 	//if len(pts) < 2 {
 	//	return
 	//}
@@ -119,9 +124,18 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 //		ring – the line to clip
 // Returns:
 //		the points in the clipped line
-func (e *EdgeNodingBuilder) clip(ring *space.Ring) {
-	//pts := ring.getCoordinates() // todo Coordinate,xyz坐标系
-	//env := ring.getEnvelopeInternal()
+func (e *EdgeNodingBuilder) clip(ring *space.Ring) []matrix.Matrix {
+	pts := ring.ToMatrix().Bound() // todo Coordinate,xyz坐标系
+	coordList := matrix.CoordinateList{}
+	env := ring.GetEnvelopeInternal()
+	/**
+	 * If no clipper or ring is completely contained then no need to clip.
+	 * But repeated points must be removed to ensure correct noding.
+	 */
+	if e.clipper == nil || e.clipEnv.Covers(env) {
+		return coordList.RemoveRepeatedPoints(pts)
+	}
+	return e.clipper.clip(pts)
 }
 
 // isClippedCompletely Tests whether a geometry (represented by its envelope)
