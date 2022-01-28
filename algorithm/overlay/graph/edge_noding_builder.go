@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/spatial-go/geoos/algorithm/matrix"
 	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
+	"github.com/spatial-go/geoos/algorithm/measure"
 	"github.com/spatial-go/geoos/algorithm/overlay/graph/noding"
 	"github.com/spatial-go/geoos/space"
 )
@@ -15,7 +16,7 @@ const (
 
 type EdgeNodingBuilder struct {
 	precisionModel string
-	inputEdges     []noding.NodedSegmentString
+	inputEdges     []*noding.NodedSegmentString
 	customNoder    noding.Noder
 	clipEnv        *envelope.Envelope
 	clipper        *RingClipper
@@ -69,7 +70,7 @@ func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) (mergedEdges []space.Ge
 // node Nodes a set of segment strings and creates Edges from the result.
 // The input segment strings each carry a EdgeSourceInfo object, which is
 // used to provide source topology info to the constructed Edges (and is then discarded).
-func (e *EdgeNodingBuilder) node(segStrings []noding.NodedSegmentString) {
+func (e *EdgeNodingBuilder) node(segStrings []*noding.NodedSegmentString) {
 	noder := e.getNoder()
 
 	fmt.Println(noder)
@@ -107,12 +108,14 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 	if e.isClippedCompletely(ring.GetEnvelopeInternal()) {
 		return
 	}
-	//pts = e.clip(ring)	// todo
-
-	//if len(pts) < 2 {
-	//	return
-	//}
-
+	pts := e.clip(ring)
+	// Don't add edges that collapse to a point
+	if len(pts) < 2 {
+		return
+	}
+	depthDelta := e.computeDepthDelta(ring, isHole)
+	info := NewEdgeSourceInfo(index, depthDelta, isHole)
+	e.addEdge(pts, info)
 }
 
 // clip If a clipper is present, clip the line to the clip extent.
@@ -124,7 +127,7 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 //		ring – the line to clip
 // Returns:
 //		the points in the clipped line
-func (e *EdgeNodingBuilder) clip(ring *space.Ring) []matrix.Matrix {
+func (e *EdgeNodingBuilder) clip(ring space.Ring) []matrix.Matrix {
 	pts := ring.ToMatrix().Bound() // todo Coordinate,xyz坐标系
 	coordList := matrix.CoordinateList{}
 	env := ring.GetEnvelopeInternal()
@@ -149,4 +152,46 @@ func (e *EdgeNodingBuilder) isClippedCompletely(env *envelope.Envelope) bool {
 		return false
 	}
 	return e.clipEnv.Disjoint(env)
+}
+
+// computeDepthDelta...
+func (e *EdgeNodingBuilder) computeDepthDelta(ring space.Ring, isHole bool) int {
+	/**
+	 * Compute the orientation of the ring, to
+	 * allow assigning side interior/exterior labels correctly.
+	 * JTS canonical orientation is that shells are CW, holes are CCW.
+	 *
+	 * It is important to compute orientation on the original ring,
+	 * since topology collapse can make the orientation computation give the wrong answer.
+	 */
+	var o measure.Orientation
+	isCCW := o.IsCCW(ring)
+	/**
+	 * Compute whether ring is in canonical orientation or not.
+	 * Canonical orientation for the overlay process is
+	 * Shells : CW, Holes: CCW
+	 */
+	isOriented := true
+	if isHole {
+		isOriented = !isCCW
+	} else {
+		isOriented = isCCW
+	}
+	/**
+	 * Depth delta can now be computed.
+	 * Canonical depth delta is 1 (Exterior on L, Interior on R).
+	 * It is flipped to -1 if the ring is oppositely oriented.
+	 */
+	depthDelta := 0
+	if isOriented {
+		depthDelta = 1
+	} else {
+		depthDelta = -1
+	}
+	return depthDelta
+}
+
+func (e *EdgeNodingBuilder) addEdge(pts []matrix.Matrix, info *EdgeSourceInfo) {
+	ss := noding.NewNodedSegmentString(pts, info)
+	e.inputEdges = append(e.inputEdges, ss)
 }

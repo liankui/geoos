@@ -1,6 +1,8 @@
 package noding
 
-import "github.com/spatial-go/geoos/space"
+import (
+	"github.com/spatial-go/geoos/algorithm/matrix"
+)
 
 // An interface for classes which represent a sequence of
 // contiguous line segments. SegmentStrings can carry a
@@ -16,7 +18,7 @@ type SegmentString interface {
 	//		data – an Object containing user-defined data
 	setData(data interface{})
 	size() int
-	getCoordinate(i int) space.Coordinate
-	getCoordinates() []space.Coordinate
+	getCoordinate(i int) matrix.Matrix
+	getCoordinates() []matrix.Matrix
 	isClosed() bool
 }

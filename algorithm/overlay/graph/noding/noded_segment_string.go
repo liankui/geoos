@@ -1,6 +1,8 @@
 package noding
 
-import "github.com/spatial-go/geoos/space"
+import (
+	"github.com/spatial-go/geoos/algorithm/matrix"
+)
 
 // Represents a list of contiguous line segments, and supports noding
 // the segments. The line segments are represented by an array of Coordinates.
@@ -9,9 +11,20 @@ import "github.com/spatial-go/geoos/space"
 // which is useful for preserving topological or parentage information.
 // All noded substrings are initialized with the same context object.
 type NodedSegmentString struct {
-	pts      []space.Coordinate
+	pts      []matrix.Matrix
 	data     interface{}
 	nodeList SegmentNodeList
+}
+
+// NewNodedSegmentString Creates a instance from a list of vertices and optional data object.
+// Params:
+//		pts – the vertices of the segment string
+//		data – the user-defined data of this segment string (may be null)
+func NewNodedSegmentString(pts []matrix.Matrix, data interface{}) *NodedSegmentString {
+	return &NodedSegmentString{
+		pts:  pts,
+		data: data,
+	}
 }
 
 // getNodedSubstrings Gets the SegmentStrings which result from
@@ -38,8 +51,8 @@ func (n *NodedSegmentString) getData() interface{} { return n.data }
 //		data – an Object containing user-defined data
 func (n *NodedSegmentString) setData(data interface{})             { n.data = data }
 func (n *NodedSegmentString) size() int                            { return len(n.pts) }
-func (n *NodedSegmentString) getCoordinate(i int) space.Coordinate { return n.pts[i] }
-func (n *NodedSegmentString) getCoordinates() []space.Coordinate   { return n.pts }
+func (n *NodedSegmentString) getCoordinate(i int) matrix.Matrix { return n.pts[i] }
+func (n *NodedSegmentString) getCoordinates() []matrix.Matrix   { return n.pts }
 func (n *NodedSegmentString) isClosed() bool {
-	return n.pts[0] == n.pts[len(n.pts)-1]
+	return n.pts[0].Equals(n.pts[len(n.pts)-1])
 }
