@@ -12,13 +12,13 @@ type SegmentString interface {
 	// Gets the user-defined data for this segment string.
 	// Returns:
 	//		the user-defined data
-	getData() interface{}
+	GetData() interface{}
 	// Sets the user-defined data for this segment string.
 	// Params:
 	//		data – an Object containing user-defined data
-	setData(data interface{})
-	size() int
-	getCoordinate(i int) matrix.Matrix
-	getCoordinates() []matrix.Matrix
-	isClosed() bool
+	SetData(data interface{})
+	Size() int
+	GetCoordinate(i int) matrix.Matrix
+	GetCoordinates() []matrix.Matrix
+	IsClosed() bool
 }

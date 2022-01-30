@@ -44,15 +44,15 @@ func (n *NodedSegmentString) getNodedSubstrings2(segStrings, resultEdgelist inte
 // getData Gets the user-defined data for this segment string.
 // Returns:
 //		the user-defined data
-func (n *NodedSegmentString) getData() interface{} { return n.data }
+func (n *NodedSegmentString) GetData() interface{} { return n.data }
 
 // setData Sets the user-defined data for this segment string.
 // Params:
 //		data – an Object containing user-defined data
-func (n *NodedSegmentString) setData(data interface{})             { n.data = data }
-func (n *NodedSegmentString) size() int                            { return len(n.pts) }
-func (n *NodedSegmentString) getCoordinate(i int) matrix.Matrix { return n.pts[i] }
-func (n *NodedSegmentString) getCoordinates() []matrix.Matrix   { return n.pts }
-func (n *NodedSegmentString) isClosed() bool {
+func (n *NodedSegmentString) SetData(data interface{})          { n.data = data }
+func (n *NodedSegmentString) Size() int                         { return len(n.pts) }
+func (n *NodedSegmentString) GetCoordinate(i int) matrix.Matrix { return n.pts[i] }
+func (n *NodedSegmentString) GetCoordinates() []matrix.Matrix   { return n.pts }
+func (n *NodedSegmentString) IsClosed() bool {
 	return n.pts[0].Equals(n.pts[len(n.pts)-1])
 }

@@ -10,11 +10,11 @@ type Noder interface {
 	// others may only add some or none at all.
 	// Params:
 	//		segStrings – a collection of SegmentStrings to node
-	computeNodes(segStrings interface{})
+	ComputeNodes(segStrings interface{})
 
 	// Returns a Collection of fully noded SegmentStrings.
 	// The SegmentStrings have the same context as their parent.
 	// Returns:
 	//		a Collection of SegmentStrings
-	getNodedSubstrings() interface{}
+	GetNodedSubstrings() interface{}
 }

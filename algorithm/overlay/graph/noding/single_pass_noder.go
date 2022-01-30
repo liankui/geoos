@@ -9,8 +9,8 @@ type SinglePassNoder struct {
 	segInt SegmentIntersector
 }
 
-// NewSinglePassNoder...
-func NewSinglePassNoder(segInt SegmentIntersector) *SinglePassNoder {
+// setSinglePassNoder...
+func (s SinglePassNoder) SetSinglePassNoder(segInt SegmentIntersector) *SinglePassNoder {
 	return &SinglePassNoder{
 		segInt: segInt,
 	}
@@ -21,7 +21,7 @@ func NewSinglePassNoder(segInt SegmentIntersector) *SinglePassNoder {
 // others may only add some or none at all.
 // Params:
 //		segStrings – a collection of SegmentStrings to node
-func (s SinglePassNoder) computeNodes(segStrings interface{}) {
+func (s SinglePassNoder) ComputeNodes(segStrings interface{}) {
 
 }
 
@@ -29,4 +29,4 @@ func (s SinglePassNoder) computeNodes(segStrings interface{}) {
 // The SegmentStrings have the same context as their parent.
 // Returns:
 //		a Collection of SegmentStrings
-func (s SinglePassNoder) getNodedSubstrings() interface{} {return nil}
+func (s SinglePassNoder) GetNodedSubstrings() interface{} { return nil }

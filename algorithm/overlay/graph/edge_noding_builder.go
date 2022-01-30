@@ -15,37 +15,55 @@ const (
 )
 
 type EdgeNodingBuilder struct {
-	precisionModel string
+	precisionModel *PrecisionModel
 	inputEdges     []*noding.NodedSegmentString
 	customNoder    noding.Noder
 	clipEnv        *envelope.Envelope
 	clipper        *RingClipper
 	limiter        *LineLimiter
+	hasEdges       [2]bool
 }
 
 // NewEdgeNodingBuilder...
-func NewEdgeNodingBuilder(pm string, noder noding.Noder) *EdgeNodingBuilder {
+func NewEdgeNodingBuilder(pm *PrecisionModel, noder noding.Noder) *EdgeNodingBuilder {
 	return &EdgeNodingBuilder{
 		precisionModel: pm,
 		customNoder:    noder,
 	}
 }
 
-// createFloatingPrecisionNoder...
-func (e *EdgeNodingBuilder) createFloatingPrecisionNoder(doValidation bool) {
-	mcNoder := MCIndexNoder{}
-	fmt.Println(mcNoder)
+// createFixedPrecisionNoder...
+func (e *EdgeNodingBuilder) createFixedPrecisionNoder(precisionModel *PrecisionModel) noding.Noder {
+	noder := noding.NewSnapRoundingNoder(precisionModel)
+	return noder
 }
 
+// createFloatingPrecisionNoder...
+func (e *EdgeNodingBuilder) createFloatingPrecisionNoder(doValidation bool) noding.Noder {
+	var n noding.Noder // todo 结构有些难以理解，需要验证这样写是否正确
+	mcNoder := n.(*noding.MCIndexNoder)
+	li := new(noding.LineIntersector)
+	mcNoder.SetSinglePassNoder(noding.NewIntersectionAdder(li))
+
+	noder := n
+	if doValidation {
+		noder = noding.NewValidatingNoder(noder)
+	}
+	return noder
+}
+
+// getNoder Gets a noder appropriate for the precision model supplied. This is one of:
+// Fixed precision: a snap-rounding noder (which should be fully robust)
+// Floating precision: a conventional nodel (which may be non-robust).
+// In this case, a validation step is applied to the output from the noder.
 func (e *EdgeNodingBuilder) getNoder() noding.Noder {
 	if e.customNoder != nil {
 		return e.customNoder
 	}
-	if e.precisionModel == "FLOATING" { // 简化写法
-		return nil
+	if e.precisionModel.isFloating() {
+		return e.createFloatingPrecisionNoder(IS_NODING_VALIDATED)
 	}
-
-	return nil
+	return e.createFixedPrecisionNoder(e.precisionModel)
 }
 
 // build Creates a set of labelled {Edge}s.
@@ -57,23 +75,47 @@ func (e *EdgeNodingBuilder) getNoder() noding.Noder {
 //		geom1 – the second geometry
 // Returns:
 //		the noded, merged, labelled edges
-func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) (mergedEdges []space.Geometry) {
+func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) []Edge {
 	e.add(g0, 0)
 	e.add(g1, 1)
-	e.node(e.inputEdges)
-
-	mergedEdges = append(mergedEdges, g0)
-	mergedEdges = append(mergedEdges, g1)
-	return
+	nodedEdges := e.node(e.inputEdges)
+	/**
+	 * Merge the noded edges to eliminate duplicates.
+	 * Labels are combined.
+	 */
+	edgeMerger := new(EdgeMerger)
+	mergedEdges := edgeMerger.merge(nodedEdges)
+	return mergedEdges
 }
 
 // node Nodes a set of segment strings and creates Edges from the result.
 // The input segment strings each carry a EdgeSourceInfo object, which is
 // used to provide source topology info to the constructed Edges (and is then discarded).
-func (e *EdgeNodingBuilder) node(segStrings []*noding.NodedSegmentString) {
+func (e *EdgeNodingBuilder) node(segStrings []*noding.NodedSegmentString) []Edge {
 	noder := e.getNoder()
+	noder.ComputeNodes(segStrings)
+	fmt.Println("-------nodedSS:pre")
+	nodedSS := noder.GetNodedSubstrings()
+	fmt.Println("-------nodedSS:", nodedSS)
+	nodedEdges := e.createEdges(nodedSS.([]noding.SegmentString))
+	return nodedEdges
+}
 
-	fmt.Println(noder)
+func (e *EdgeNodingBuilder) createEdges(segStrings []noding.SegmentString) []Edge {
+	edges := make([]Edge, 0)
+	for _, ss := range segStrings {
+		pts := ss.GetCoordinates()
+		// don't create edges from collapsed lines
+		var edge Edge
+		if edge.IsCollapsed(pts) {
+			continue
+		}
+		info := ss.GetData().(*EdgeSourceInfo) // 待验证
+		// Record that a non-collapsed edge exists for the parent geometry
+		e.hasEdges[info.index] = true
+		edges = append(edges, NewEdge(pts, info))
+	}
+	return edges
 }
 
 // add...
@@ -191,6 +233,7 @@ func (e *EdgeNodingBuilder) computeDepthDelta(ring space.Ring, isHole bool) int 
 	return depthDelta
 }
 
+// addEdge...
 func (e *EdgeNodingBuilder) addEdge(pts []matrix.Matrix, info *EdgeSourceInfo) {
 	ss := noding.NewNodedSegmentString(pts, info)
 	e.inputEdges = append(e.inputEdges, ss)
