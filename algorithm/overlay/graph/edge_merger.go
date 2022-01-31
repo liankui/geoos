@@ -16,10 +16,10 @@ package graph
 // (possibly with multiple result lines for a single input line).
 type EdgeMerger struct {}
 
-func (e *EdgeMerger) merge(edges []Edge) []Edge {
+func (e *EdgeMerger) merge(edges []*Edge) []*Edge {
 	// use a list to collect the final edges, to preserve order
-	mergedEdges := make([]Edge, 0)
-	edgeMap := make(map[*EdgeKey]Edge)
+	mergedEdges := make([]*Edge, 0)
+	edgeMap := make(map[*EdgeKey]*Edge)
 
 	for _, edge := range edges {
 		edgeKey := new(EdgeKey)

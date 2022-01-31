@@ -13,12 +13,12 @@ type EdgeKey struct {
 }
 
 // create...
-func (e *EdgeKey) create(edge Edge) {
+func (e *EdgeKey) create(edge *Edge) {
 	e.initPoints(edge)
 }
 
 // initPoints...
-func (e *EdgeKey) initPoints(edge Edge) {
+func (e *EdgeKey) initPoints(edge *Edge) {
 	direction, _ := edge.direction()
 	if direction {
 		e.init(edge.pts[0], edge.pts[1])

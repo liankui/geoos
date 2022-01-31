@@ -75,7 +75,7 @@ func (e *EdgeNodingBuilder) getNoder() noding.Noder {
 //		geom1 – the second geometry
 // Returns:
 //		the noded, merged, labelled edges
-func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) []Edge {
+func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) []*Edge {
 	e.add(g0, 0)
 	e.add(g1, 1)
 	nodedEdges := e.node(e.inputEdges)
@@ -91,7 +91,7 @@ func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) []Edge {
 // node Nodes a set of segment strings and creates Edges from the result.
 // The input segment strings each carry a EdgeSourceInfo object, which is
 // used to provide source topology info to the constructed Edges (and is then discarded).
-func (e *EdgeNodingBuilder) node(segStrings []*noding.NodedSegmentString) []Edge {
+func (e *EdgeNodingBuilder) node(segStrings []*noding.NodedSegmentString) []*Edge {
 	noder := e.getNoder()
 	noder.ComputeNodes(segStrings)
 	fmt.Println("-------nodedSS:pre")
@@ -101,12 +101,12 @@ func (e *EdgeNodingBuilder) node(segStrings []*noding.NodedSegmentString) []Edge
 	return nodedEdges
 }
 
-func (e *EdgeNodingBuilder) createEdges(segStrings []noding.SegmentString) []Edge {
-	edges := make([]Edge, 0)
+func (e *EdgeNodingBuilder) createEdges(segStrings []noding.SegmentString) []*Edge {
+	edges := make([]*Edge, 0)
 	for _, ss := range segStrings {
 		pts := ss.GetCoordinates()
 		// don't create edges from collapsed lines
-		var edge Edge
+		var edge *Edge
 		if edge.IsCollapsed(pts) {
 			continue
 		}
