@@ -2,6 +2,7 @@ package graph
 
 import (
 	"github.com/spatial-go/geoos/algorithm"
+	"github.com/spatial-go/geoos/algorithm/calc"
 	"github.com/spatial-go/geoos/algorithm/matrix"
 )
 
@@ -170,4 +171,88 @@ func (e *Edge) relativeDirection(edge2 *Edge) bool {
 		return false
 	}
 	return true
+}
+
+// createLabel...
+func (e *Edge) createLabel() *OverlayLabel {
+	lbl := new(OverlayLabel)
+	e.initLabel(lbl, 0, e.aDim, e.aDepthDelta, e.aIsHole)
+	e.initLabel(lbl, 1, e.bDim, e.bDepthDelta, e.bIsHole)
+	return lbl
+}
+
+// initLabel Populates the label for an edge resulting from an input geometry.
+// 	If the edge is not part of the input, the label is left as NOT_PART
+//	If input is an Area and the edge is on the boundary (which may include some collapses),
+//		edge is marked as an AREA edge and side locations are assigned
+//	If input is an Area and the edge is collapsed (depth delta = 0), the label is set to COLLAPSE.
+//		The location will be determined later by evaluating the final graph topology.
+//	If input is a Line edge is set to a LINE edge. For line edges the line location is not
+//		significant (since there is no parent area for which to determine location).
+func (e *Edge) initLabel(lbl *OverlayLabel, geomIndex, dim, depthDelta int, isHole bool) {
+	dimLabel := e.labelDim(dim, depthDelta)
+	switch dimLabel {
+	case DIM_NOT_PART:
+		lbl.initNotPart(geomIndex)
+	case DIM_BOUNDARY:
+		lbl.initBoundary(geomIndex, e.locationLeft(depthDelta), e.locationRight(depthDelta), isHole)
+	case DIM_COLLAPSE:
+		lbl.initCollapse(geomIndex, isHole)
+	case DIM_LINE:
+		lbl.initLine(geomIndex)
+	}
+}
+
+// labelDim...
+func (e *Edge) labelDim(dim, depthDelta int) int {
+	if dim == calc.ImFalse {
+		return DIM_NOT_PART
+	}
+	if dim == calc.ImL {
+		return DIM_LINE
+	}
+	isCollapse := depthDelta == 0
+	if isCollapse {
+		return DIM_COLLAPSE
+	}
+	return DIM_BOUNDARY
+}
+
+// locationRight...
+func (e *Edge) locationRight(depthDelta int) int {
+	delSign := e.delSign(depthDelta)
+	switch delSign {
+	case 0:
+		return LOC_UNKNOWN
+	case 1:
+		return calc.ImInterior
+	case -1:
+		return calc.ImExterior
+	}
+	return LOC_UNKNOWN
+}
+
+// locationLeft...
+func (e *Edge) locationLeft(depthDelta int) int {
+	delSign := e.delSign(depthDelta)
+	switch delSign {
+	case 0:
+		return LOC_UNKNOWN
+	case 1:
+		return calc.ImExterior
+	case -1:
+		return calc.ImInterior
+	}
+	return LOC_UNKNOWN
+}
+
+// delSign...
+func (e *Edge) delSign(depthDel int) int {
+	if depthDel > 0 {
+		return 1
+	}
+	if depthDel < 0 {
+		return -1
+	}
+	return 0
 }

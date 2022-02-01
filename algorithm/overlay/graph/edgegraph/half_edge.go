@@ -79,7 +79,7 @@ func (h *HalfEdge) oNext() *HalfEdge {
 // edge must have the same origin as this edge.
 // Params:
 //		eAdd – the edge to insert
-func (h *HalfEdge) insert(eAdd *HalfEdge) {
+func (h *HalfEdge) Insert(eAdd *HalfEdge) {
 	// If this is only edge at origin, insert it after this
 	if h.oNext() == h {
 		// set linkage so ring is correct

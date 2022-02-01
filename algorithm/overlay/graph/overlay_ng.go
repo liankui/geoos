@@ -2,7 +2,6 @@ package graph
 
 import (
 	"fmt"
-	"github.com/spatial-go/geoos/algorithm/matrix"
 	"github.com/spatial-go/geoos/algorithm/overlay/graph/noding"
 	"github.com/spatial-go/geoos/space"
 )
@@ -56,7 +55,7 @@ func (o *OverlayNG) computeEdgeOverlay() space.Geometry {
 }
 
 // nodeEdges...
-func (o *OverlayNG) nodeEdges() (edges []matrix.LineMatrix) {
+func (o *OverlayNG) nodeEdges() (edges []*Edge) {
 	// Node the edges, using whatever noder is being used
 	// 1。1
 	nodingBuilder := NewEdgeNodingBuilder(o.PrecisionModel, o.Noder)
@@ -81,9 +80,10 @@ func (o *OverlayNG) nodeEdges() (edges []matrix.LineMatrix) {
 }
 
 // buildGraph...
-func (o *OverlayNG) buildGraph(edges []matrix.LineMatrix) {
-	var graph OverlayGraph
+func (o *OverlayNG) buildGraph(edges []*Edge) *OverlayGraph {
+	graph := new(OverlayGraph)
 	for _, e := range edges {
-		graph.addEdge(e.Bound(), e.cre)
+		graph.addEdge(e.pts, e.createLabel())
 	}
+	return graph
 }

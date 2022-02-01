@@ -11,12 +11,12 @@ type OverlayEdge struct {
 	// true indicates direction is forward along segString false is
 	// reverse direction The label must be interpreted accordingly.
 	direction bool
-	pts       matrix.LineMatrix
-	label     OverlayLabel
+	pts       []matrix.Matrix
+	label     *OverlayLabel
 }
 
 // createEdgePair...
-func (o *OverlayEdge) createEdgePair(pts matrix.LineMatrix, lbl OverlayLabel) edgegraph.IHalfEdge {
+func (o *OverlayEdge) createEdgePair(pts []matrix.Matrix, lbl *OverlayLabel) edgegraph.IHalfEdge {
 	e0 := o.createEdge(pts, lbl, true)
 	e1 := o.createEdge(pts, lbl, false)
 	e0.(*edgegraph.HalfEdge).Link(e1) // todo 转换问题
@@ -24,7 +24,7 @@ func (o *OverlayEdge) createEdgePair(pts matrix.LineMatrix, lbl OverlayLabel) ed
 }
 
 // createEdge...
-func (o *OverlayEdge) createEdge(pts matrix.LineMatrix, lbl OverlayLabel, direction bool) edgegraph.IHalfEdge {
+func (o *OverlayEdge) createEdge(pts []matrix.Matrix, lbl *OverlayLabel, direction bool) edgegraph.IHalfEdge {
 	var origin, dirPt matrix.Matrix
 	if direction {
 		origin = pts[0]
