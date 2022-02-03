@@ -6,7 +6,7 @@ import "github.com/spatial-go/geoos/algorithm/overlay/graph"
 // SegmentStrings, in a performant way, and avoiding unnecessary noding.
 // Implements the Snap Rounding technique described in the papers by Hobby,
 // Guibas & Marimont, and Goodrich et al. Snap Rounding enforces that all output
-// vertices lie on a uniform grid, which is determined by the provided PrecisionModel.
+// vertices lie on a uniform grid, which is determined by the provided Pm.
 // Input vertices do not have to be rounded to the grid beforehand; this is done
 // during the snap-rounding process. In fact, rounding cannot be done a priori,
 // since rounding vertices by themselves can distort the rounded topology of the arrangement

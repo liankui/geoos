@@ -52,6 +52,12 @@ func (e *EdgeNodingBuilder) createFloatingPrecisionNoder(doValidation bool) nodi
 	return noder
 }
 
+func (e *EdgeNodingBuilder) setClipEnvelope(clipEnv *envelope.Envelope) {
+	e.clipEnv = clipEnv
+	e.clipper = NewRingClipper(clipEnv)
+	e.limiter = NewLineLimiter(clipEnv)
+}
+
 // getNoder Gets a noder appropriate for the precision model supplied. This is one of:
 // Fixed precision: a snap-rounding noder (which should be fully robust)
 // Floating precision: a conventional nodel (which may be non-robust).

@@ -5,6 +5,12 @@ import (
 	"github.com/spatial-go/geoos/algorithm/overlay/graph/edgegraph"
 )
 
+const (
+	isInResultArea = false
+	isInResultLine = false
+	isVisited      = false
+)
+
 type OverlayEdge struct {
 	*edgegraph.HalfEdge
 	origin, dirPt matrix.Matrix
@@ -13,6 +19,31 @@ type OverlayEdge struct {
 	direction bool
 	pts       []matrix.Matrix
 	label     *OverlayLabel
+}
+
+// getCoordinatesOriented...
+func (o *OverlayEdge) getCoordinatesOriented() []matrix.Matrix {
+	if o.direction {
+		return o.pts
+	}
+	var co []matrix.Matrix
+	copy(co, o.pts)
+	co = o.reverse(co)
+	return co
+}
+
+func (o *OverlayEdge) reverse(coord []matrix.Matrix) []matrix.Matrix {
+	if len(coord) <= 1 {
+		return coord
+	}
+	last := len(coord) - 1
+	mid := last / 2
+	for i := 0; i <= mid; i++ {
+		tmp := coord[i]
+		coord[i] = coord[last-i]
+		coord[last-i] = tmp
+	}
+	return coord
 }
 
 // createEdgePair...

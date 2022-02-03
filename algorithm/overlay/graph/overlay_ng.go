@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	STRICT_MODE_DEFAULT = false // todo
+	STRICT_MODE_DEFAULT = false
 	isStrictMode        = STRICT_MODE_DEFAULT
 	isOptimized         = true
 	isAreaResultOnly    = false
@@ -17,19 +17,21 @@ const (
 )
 
 type OverlayNG struct {
-	G0, G1         space.Geometry
-	PrecisionModel *PrecisionModel
-	OpCode         int
-	Noder          noding.Noder
+	G0, G1    space.Geometry
+	Pm        *PrecisionModel
+	OpCode    int
+	Noder     noding.Noder
+	InputGeom *InputGeometry
+	//geomFact GeometryFactory ;
 }
 
 // overlay 主函数入口，得到计算后的多边形
 func (o *OverlayNG) overlay(g0, g1 space.Geometry, opCode int) space.Geometry {
 	ov := OverlayNG{
-		G0:             g0,
-		G1:             g1,
-		PrecisionModel: NewPrecisionModel(),
-		OpCode:         opCode,
+		G0:     g0,
+		G1:     g1,
+		Pm:     NewPrecisionModel(),
+		OpCode: opCode,
 	}
 	return ov.getResult()
 }
@@ -46,37 +48,52 @@ func (o *OverlayNG) getResult() space.Geometry {
 
 // computeEdgeOverlay...
 func (o *OverlayNG) computeEdgeOverlay() space.Geometry {
-	// 1
 	edges := o.nodeEdges()
-	o.buildGraph(edges)
+	graph := o.buildGraph(edges)
 
-	fmt.Println(edges)
-	return nil
+	var overlayUtil OverlayUtil
+	if isOutputNodedEdges {
+		return overlayUtil.toLines(graph, isOutputEdges)
+	}
+
+	o.labelGraph(graph)
+
+	if isOutputEdges || isOutputResultEdges {
+		return overlayUtil.toLines(graph, isOutputEdges)
+	}
+
+	return o.extractResult(o.OpCode, graph)
 }
 
 // nodeEdges...
-func (o *OverlayNG) nodeEdges() (edges []*Edge) {
+func (o *OverlayNG) nodeEdges() []*Edge {
 	// Node the edges, using whatever noder is being used
-	// 1。1
-	nodingBuilder := NewEdgeNodingBuilder(o.PrecisionModel, o.Noder)
+	nodingBuilder := NewEdgeNodingBuilder(o.Pm, o.Noder)
 
 	// Optimize Intersection and Difference by clipping to the
 	// result extent, if enabled.
 	if isOptimized {
-
+		var overlayUtil OverlayUtil
+		clipEnv := overlayUtil.clippingEnvelope(o.OpCode, o.InputGeom, o.Pm)
+		if clipEnv != nil {
+			nodingBuilder.setClipEnvelope(clipEnv)
+		}
 	}
 
-	// 1。3 DONE
-	mergedEdges := nodingBuilder.build(o.G0, o.G1)
+	mergedEdges := nodingBuilder.build(
+		o.InputGeom.getGeometry(0),
+		o.InputGeom.getGeometry(1))
 	fmt.Printf("mergedEdges:%v\n", mergedEdges)
 
-	// Optimize Intersection and Difference by clipping to the
-	// result extent, if enabled.
-	if isOptimized {
+	/**
+	 * Record if an input geometry has collapsed.
+	 * This is used to avoid trying to locate disconnected edges
+	 * against a geometry which has collapsed completely.
+	 */
+	o.InputGeom.setCollapsed(0, !nodingBuilder.hasEdgesFor(0))
+	o.InputGeom.setCollapsed(1, !nodingBuilder.hasEdgesFor(1))
 
-	}
-
-	return
+	return mergedEdges
 }
 
 // buildGraph...
@@ -86,4 +103,28 @@ func (o *OverlayNG) buildGraph(edges []*Edge) *OverlayGraph {
 		graph.addEdge(e.pts, e.createLabel())
 	}
 	return graph
+}
+
+func (o *OverlayNG) labelGraph(graph *OverlayGraph) {
+	labeller := NewOverlayLabeller(graph, o.InputGeom)
+	labeller.computeLabelling()
+	labeller.markResultAreaEdges(opCode)
+	labeller.unmarkDuplicateEdgesFromResultArea()
+}
+
+// extractResult Extracts the result geometry components from the fully labelled topology graph.
+// This method implements the semantic that the result of an intersection operation
+// is homogeneous with highest dimension. In other words, if an intersection has
+// components of a given dimension no lower-dimension components are output.
+// For example, if two polygons intersect in an area, no linestrings or points are
+// included in the result, even if portions of the input do meet in lines or points.
+// This semantic choice makes more sense for typical usage, in which only the highest
+// dimension components are of interest.
+// Params:
+//		opCode – the overlay operation
+//		graph – the topology graph
+// Returns:
+//		the result geometry
+func (o *OverlayNG) extractResult(opCode int, graph *OverlayGraph) space.Geometry {
+
 }

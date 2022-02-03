@@ -10,7 +10,7 @@ package noding
 // in the interior of each segment. If the point lies in the interior of both segments,
 // this is termed a proper intersection. The method isProper() test for this situation.
 // The intersection point(s) may be computed in a precise or non-precise manner.
-// Computing an intersection point precisely involves rounding it via a supplied PrecisionModel.
+// Computing an intersection point precisely involves rounding it via a supplied Pm.
 // LineIntersectors do not perform an initial envelope intersection test to determine
 // if the segments are disjoint. This is because this class is likely to be used in a context
 // where envelope overlap is already known to occur (or be likely).

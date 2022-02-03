@@ -18,3 +18,10 @@ type LineLimiter struct {
 	ptList      []matrix.Matrix
 	lastOutside matrix.Matrix
 }
+
+// NewLineLimiter Creates a new limiter for a given envelope.
+func NewLineLimiter(env *envelope.Envelope) *LineLimiter {
+	return &LineLimiter{
+		limitEnv: env,
+	}
+}

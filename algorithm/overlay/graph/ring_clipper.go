@@ -32,6 +32,17 @@ type RingClipper struct {
 	clipEnvMaxX float64
 }
 
+// NewRingClipper Creates a new clipper for the given envelope.
+func NewRingClipper(clipEnv *envelope.Envelope) *RingClipper {
+	return &RingClipper{
+		clipEnv:     clipEnv,
+		clipEnvMinY: clipEnv.MinY,
+		clipEnvMaxY: clipEnv.MaxY,
+		clipEnvMinX: clipEnv.MinX,
+		clipEnvMaxX: clipEnv.MaxX,
+	}
+}
+
 // clip Clips a list of points to the clipping rectangle box.
 func (r *RingClipper) clip(pts []matrix.Matrix) []matrix.Matrix {
 	for edgeIndex := 0; edgeIndex < 4; edgeIndex++ {
