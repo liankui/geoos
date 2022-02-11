@@ -3,6 +3,7 @@ package graph
 import (
 	"github.com/spatial-go/geoos/algorithm/matrix"
 	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
+	"github.com/spatial-go/geoos/coordtransform"
 	"github.com/spatial-go/geoos/space"
 	"math"
 )
@@ -111,10 +112,10 @@ func (o *OverlayUtil) isFloating(pm *PrecisionModel) bool {
 }
 
 // toLines...
-func (o *OverlayUtil) toLines(graph *OverlayGraph , isOutputEdges bool) space.Geometry {
-	lines := make([]space.LineString, 0)
+func (o *OverlayUtil) toLines(graph *OverlayGraph, isOutputEdges bool) space.Geometry {
+	lines := make([]matrix.LineMatrix, 0)
 	for _, edge := range graph.edges {
-		includeEdge := isOutputEdges || isInResultArea
+		includeEdge := isOutputEdges || edge.isInResultArea
 		if !includeEdge {
 			continue
 		}
@@ -124,11 +125,19 @@ func (o *OverlayUtil) toLines(graph *OverlayGraph , isOutputEdges bool) space.Ge
 		for _, pt := range pts {
 			tmp = append(tmp, pt)
 		}
-		var line space.LineString = tmp
+		var line matrix.LineMatrix = tmp
 
 		//line.setUserData(labelForResult(edge) )
 		lines = append(lines, line)
 	}
-	// todo
-	return geomFact.buildGeometry(lines)
+
+	// todo 暂时使用geoos的构建方式
+	var trans coordtransform.Transformer
+	lineMatrices := trans.TransformMultiLineString(lines)
+
+	var linesTmp space.MultiLineString
+	for _, lineMatrix := range lineMatrices {
+		linesTmp = append(linesTmp, space.LineString(lineMatrix))
+	}
+	return linesTmp
 }

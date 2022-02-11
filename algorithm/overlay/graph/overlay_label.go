@@ -111,3 +111,175 @@ func (o *OverlayLabel) initNotPart(index int) {
 		o.bDim = DIM_NOT_PART
 	}
 }
+
+// isBoundaryEither Tests if a label is for an edge which is in the boundary of either source geometry.
+func (o *OverlayLabel) isBoundaryEither() bool {
+	return o.aDim == DIM_BOUNDARY || o.bDim == DIM_BOUNDARY
+}
+
+// isBoundarySingleton Tests whether a label is for an edge which is a boundary of one
+// geometry and not part of the other.
+// Returns:
+//		true if the edge is a boundary singleton
+func (o *OverlayLabel) isBoundarySingleton() bool {
+	if o.aDim == DIM_BOUNDARY && o.bDim == DIM_NOT_PART {
+		return true
+	}
+	if o.bDim == DIM_BOUNDARY && o.aDim == DIM_NOT_PART {
+		return true
+	}
+	return false
+}
+
+// isLine Tests whether at least one of the sources is a Line.
+// Returns:
+//		true if at least one source is a line
+func (o *OverlayLabel) isLine() bool {
+	return o.aDim == DIM_LINE || o.bDim == DIM_LINE
+}
+
+// isLineByIndex Tests whether a source is a Line.
+// Params:
+//		index – the index of the input geometry
+// Returns:
+//		true if the input is a Line
+func (o *OverlayLabel) isLineByIndex(index int) bool {
+	if index == 0 {
+		return o.aDim == DIM_LINE
+	}
+	return o.bDim == DIM_LINE
+}
+
+// isLineInArea Tests if a line edge is inside a source geometry (i.e. it has location Location.INTERIOR).
+// Params:
+//		index – the index of the input geometry
+// Returns:
+//		true if the line is inside the source geometry
+func (o *OverlayLabel) isLineInArea(index int) bool {
+	if index == 0 {
+		return o.aLocLine == calc.ImInterior
+	}
+	return o.bLocLine == calc.ImInterior
+}
+
+// isBoundaryBoth Tests if a label is for an edge which is in the boundary of both source geometries.
+// Returns:
+//		true if the label is a boundary for both sources
+func (o *OverlayLabel) isBoundaryBoth() bool {
+	return o.aDim == DIM_BOUNDARY && o.bDim == DIM_BOUNDARY
+}
+
+// isBoundaryCollapse Tests if the label is a collapsed edge of one area and is a
+// (non-collapsed) boundary edge of the other area.
+// Returns:
+//		true if the label is for a collapse coincident with a boundary
+func (o *OverlayLabel) isBoundaryCollapse() bool {
+	if o.isLine() {
+		return false
+	}
+	return !o.isBoundaryBoth()
+}
+
+// isBoundaryTouch Tests if a label is for an edge where two area touch along their boundary.
+// Returns:
+//		true if the edge is a boundary touch
+func (o *OverlayLabel) isBoundaryTouch() bool {
+	return o.isBoundaryBoth() &&
+		o.getLocation(0, calc.SideRight, true) != o.getLocation(1, calc.SideRight, true)
+}
+
+// isCollapse Tests if an edge is a Collapse for a source geometry.
+// Params:
+//		index – the index of the input geometry
+// Returns:
+//		true if the label indicates the edge is a collapse for the source
+func (o *OverlayLabel) isCollapse(index int) bool {
+	dimension := 0
+	if index == 0 {
+		dimension = o.aDim
+	}
+	dimension = o.bDim
+	return dimension == DIM_COLLAPSE
+}
+
+// isInteriorCollapse Tests if a label is a Collapse has location Location.INTERIOR,
+// to at least one source geometry.
+// Returns:
+//		true if the label is an Interior Collapse to a source geometry
+func (o *OverlayLabel) isInteriorCollapse() bool {
+	if o.aDim == DIM_COLLAPSE && o.aLocLine == calc.ImInterior {
+		return true
+	}
+	if o.bDim == DIM_COLLAPSE && o.bLocLine == calc.ImInterior {
+		return true
+	}
+	return false
+}
+
+// isCollapseAndNotPartInterior Tests if a label is a Collapse and NotPart with location
+// Location.INTERIOR for the other geometry.
+// Returns:
+//		true if the label is a Collapse and a NotPart with Location Interior
+func (o *OverlayLabel) isCollapseAndNotPartInterior() bool {
+	if o.aDim == DIM_COLLAPSE && o.bDim == DIM_NOT_PART && o.bLocLine == calc.ImInterior {
+		return true
+	}
+	if o.bDim == DIM_COLLAPSE && o.aDim == DIM_NOT_PART && o.aLocLine == calc.ImInterior {
+		return true
+	}
+	return false
+}
+
+// getLineLocation Gets the line location for a source geometry.
+// Params:
+//		index – the index of the input geometry
+// Returns:
+//		the line location for the source
+func (o *OverlayLabel) getLineLocation(index int) int {
+	if index == 0 {
+		return o.aLocLine
+	}
+	return o.bLocLine
+}
+
+// getLocation Gets the location for a Position of an edge of a source for an edge with given orientation.
+// Params:
+//		index – the index of the source geometry
+//		position – the position to get the location for
+//		isForward – true if the orientation of the containing edge is forward
+// Returns:
+//		the location of the oriented position in the source
+func (o *OverlayLabel) getLocation(index, position int, isForward bool) int {
+	if index == 0 {
+		switch position {
+		case calc.SideLeft:
+			if isForward {
+				return o.aLocLeft
+			}
+			return o.aLocRight
+		case calc.SideRight:
+			if isForward {
+				return o.aLocRight
+			}
+			return o.aLocLeft
+		case calc.SideOn:
+			return o.aLocLine
+		}
+	}
+	// index == 1
+	switch position {
+	case calc.SideLeft:
+		if isForward {
+			return o.bLocLeft
+		}
+		return o.bLocRight
+	case calc.SideRight:
+		if isForward {
+			return o.bLocRight
+		}
+		return o.bLocLeft
+	case calc.SideOn:
+		return o.bLocLine
+	}
+	return LOC_UNKNOWN
+}

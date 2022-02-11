@@ -1,6 +1,9 @@
 package matrix
 
-import "reflect"
+import (
+	"github.com/spatial-go/geoos/space"
+	"reflect"
+)
 
 type CoordinateList []Matrix
 
@@ -21,7 +24,7 @@ func (c CoordinateList) RemoveRepeatedPoints(coord []Matrix) []Matrix {
 // hasRepeatedPoints Tests whether []Matrix returns true
 // for any two consecutive Coordinates in the given array.
 func (c CoordinateList) hasRepeatedPoints(coord []Matrix) bool {
-	for i := 1; i < len(coord); i++ { // todo 顺序问题
+	for i := 1; i < len(coord); i++ {
 		if reflect.DeepEqual(coord[i-1], coord[i]) {
 			return true
 		}
@@ -73,4 +76,44 @@ func (c CoordinateList) AddToEndList(coord Matrix, allowRepeated bool) Coordinat
 	tmp := c
 	tmp = append(tmp, coord)
 	return tmp
+}
+
+// CloseRing Ensure this coordList is a ring, by adding the start point if necessary
+func (c CoordinateList) CloseRing() {
+	if len(c) > 0 {
+		duplicate := c[0]
+		c.AddToEndList(duplicate, false)
+	}
+}
+
+// ToPts...
+func (c CoordinateList) ToPts() []Matrix {
+	return c
+}
+
+// ToPts...
+func (c CoordinateList) ToLineString() space.LineString {
+	tmp := make([][]float64, 0)
+	for _, matrix := range c {
+		tmp = append(tmp, matrix)
+	}
+	return tmp
+}
+
+// ToCoordinateArray Creates an array containing the coordinates in this list, oriented
+// in the given direction (forward or reverse).
+// Params:
+//		isForward – true if the direction is forward, false for reverse
+// Returns:
+//		an oriented array of coordinates
+func (c CoordinateList) ToCoordinateArray(isForward bool) CoordinateList {
+	if isForward {
+		return c[0].Bound()
+	}
+	// construct reversed array
+	pts := make([]Matrix, len(c))
+	for i := 0; i < len(c); i++ {
+		pts[i] = pts[len(c)-i-1]	// todo 是否数组越界
+	}
+	return pts
 }

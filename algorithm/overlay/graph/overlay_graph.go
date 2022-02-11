@@ -26,24 +26,35 @@ func (o *OverlayGraph) addEdge(pts []matrix.Matrix, label *OverlayLabel) *Overla
 	overlayEdge := new(OverlayEdge)
 	e := overlayEdge.createEdgePair(pts, label)
 	o.insert(e)
-	o.insert(e.(*OverlayEdge).symOE())
-	return e.(*OverlayEdge)
+	o.insert(e.symOE())
+	return e
 }
 
 // insert Inserts a single half-edge into the graph. The sym edge must also be inserted.
 // Params:
 //		e – the half-edge to insert
-func (o *OverlayGraph) insert(e edgegraph.IHalfEdge) {
-	o.edges = append(o.edges, e.(*OverlayEdge))
+func (o *OverlayGraph) insert(e *OverlayEdge) {
+	o.edges = append(o.edges, e)
 	/**
 	 * If the edge origin node is already in the graph,
 	 * insert the edge into the star of edges around the node.
 	 * Otherwise, add a new node for the origin.
 	 */
-	nodeEdge, ok := o.nodeMap[e.(*OverlayEdge).origin]
+	nodeEdge, ok := o.nodeMap[e.origin]
 	if ok {
-		nodeEdge.Insert(e.(*edgegraph.HalfEdge)) // todo 方式不太对
+		edgegraph.HalfEdgerInsert(nodeEdge, e)
 	} else {
-		o.nodeMap[e.(*OverlayEdge).origin] = e.(*OverlayEdge)
+		o.nodeMap[e.origin] = e
 	}
+}
+
+// getResultAreaEdges Gets the representative edges marked as being in the result area.
+func (o *OverlayGraph) getResultAreaEdges() []*OverlayEdge {
+	resultEdges := make([]*OverlayEdge, 0)
+	for _, edge := range o.edges {
+		if edge.isInResultArea {
+			resultEdges = append(resultEdges, edge)
+		}
+	}
+	return resultEdges
 }

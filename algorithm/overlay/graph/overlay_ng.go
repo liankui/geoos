@@ -2,19 +2,12 @@ package graph
 
 import (
 	"fmt"
+	"github.com/spatial-go/geoos/algorithm/calc"
 	"github.com/spatial-go/geoos/algorithm/overlay/graph/noding"
 	"github.com/spatial-go/geoos/space"
 )
 
-const (
-	STRICT_MODE_DEFAULT = false
-	isStrictMode        = STRICT_MODE_DEFAULT
-	isOptimized         = true
-	isAreaResultOnly    = false
-	isOutputEdges       = false
-	isOutputResultEdges = false
-	isOutputNodedEdges  = false
-)
+const ()
 
 type OverlayNG struct {
 	G0, G1    space.Geometry
@@ -22,7 +15,14 @@ type OverlayNG struct {
 	OpCode    int
 	Noder     noding.Noder
 	InputGeom *InputGeometry
-	//geomFact GeometryFactory ;
+
+	STRICT_MODE_DEFAULT bool // default=false
+	isStrictMode        bool // =STRICT_MODE_DEFAULT
+	isOptimized         bool // todo default=true
+	isAreaResultOnly    bool
+	isOutputEdges       bool
+	isOutputResultEdges bool
+	isOutputNodedEdges  bool
 }
 
 // overlay 主函数入口，得到计算后的多边形
@@ -52,14 +52,14 @@ func (o *OverlayNG) computeEdgeOverlay() space.Geometry {
 	graph := o.buildGraph(edges)
 
 	var overlayUtil OverlayUtil
-	if isOutputNodedEdges {
-		return overlayUtil.toLines(graph, isOutputEdges)
+	if o.isOutputNodedEdges {
+		return overlayUtil.toLines(graph, o.isOutputEdges)
 	}
 
-	o.labelGraph(graph)
+	//o.labelGraph(graph) // todo
 
-	if isOutputEdges || isOutputResultEdges {
-		return overlayUtil.toLines(graph, isOutputEdges)
+	if o.isOutputEdges || o.isOutputResultEdges {
+		return overlayUtil.toLines(graph, o.isOutputEdges)
 	}
 
 	return o.extractResult(o.OpCode, graph)
@@ -72,7 +72,7 @@ func (o *OverlayNG) nodeEdges() []*Edge {
 
 	// Optimize Intersection and Difference by clipping to the
 	// result extent, if enabled.
-	if isOptimized {
+	if o.isOptimized {
 		var overlayUtil OverlayUtil
 		clipEnv := overlayUtil.clippingEnvelope(o.OpCode, o.InputGeom, o.Pm)
 		if clipEnv != nil {
@@ -105,12 +105,13 @@ func (o *OverlayNG) buildGraph(edges []*Edge) *OverlayGraph {
 	return graph
 }
 
-func (o *OverlayNG) labelGraph(graph *OverlayGraph) {
-	labeller := NewOverlayLabeller(graph, o.InputGeom)
-	labeller.computeLabelling()
-	labeller.markResultAreaEdges(opCode)
-	labeller.unmarkDuplicateEdgesFromResultArea()
-}
+// todo
+//func (o *OverlayNG) labelGraph(graph *OverlayGraph) {
+//	labeller := NewOverlayLabeller(graph, o.InputGeom)
+//	labeller.computeLabelling()
+//	labeller.markResultAreaEdges(opCode)
+//	labeller.unmarkDuplicateEdgesFromResultArea()
+//}
 
 // extractResult Extracts the result geometry components from the fully labelled topology graph.
 // This method implements the semantic that the result of an intersection operation
@@ -126,5 +127,73 @@ func (o *OverlayNG) labelGraph(graph *OverlayGraph) {
 // Returns:
 //		the result geometry
 func (o *OverlayNG) extractResult(opCode int, graph *OverlayGraph) space.Geometry {
+	isAllowMixedIntResult := !o.isStrictMode
 
+	//--- Build polygons
+	resultAreaEdges := graph.getResultAreaEdges()
+	polyBuilder := NewPolygonBuilder(resultAreaEdges)
+	resultPolyList := polyBuilder.getPolygons()
+	hasResultAreaComponents := len(resultPolyList) > 0
+
+	resultLineList := make([]space.LineString, 0)
+	resultPointList := make([]space.Point, 0)
+
+	if !isAllowMixedIntResult {
+		allowResultLines := !hasResultAreaComponents ||
+			isAllowMixedIntResult || opCode == SYMDIFFERENCE || opCode == UNION
+		if allowResultLines {
+			lineBuilder := NewLineBuilder(o.InputGeom, graph, hasResultAreaComponents, opCode)
+			lineBuilder.setStrictMode(o.isStrictMode)
+			resultLineList = lineBuilder.getLines()
+		}
+		/**
+		 * Operations with point inputs are handled elsewhere.
+		 * Only an Intersection op can produce point results
+		 * from non-point inputs.
+		 */
+		hasResultComponents := hasResultAreaComponents || len(resultLineList) > 0
+		allowResultPoints := !hasResultComponents || isAllowMixedIntResult
+		if o.OpCode == INTERSECTION && allowResultPoints {
+			 pointBuilder := new IntersectionPointBuilder(graph, geomFact);
+			pointBuilder.setStrictMode(isStrictMode);
+			resultPointList = pointBuilder.getPoints()
+		}
+	}
+
+	if (isEmpty(resultPolyList) && isEmpty(resultLineList) && isEmpty(resultPointList)){
+		return createEmptyResult()
+	}
+
+	Geometry resultGeom = OverlayUtil.createResultGeometry(resultPolyList, resultLineList, resultPointList, geomFact);
+	return resultGeom;
+}
+
+// isResultOfOp Tests whether a point with given Locations relative to two geometries
+// would be contained in the result of overlaying the geometries using a given overlay operation.
+// This is used to determine whether components computed during the overlay process
+// should be included in the result geometry.
+// The method handles arguments of Location.NONE correctly.
+// Params:
+//		overlayOpCode – the code for the overlay operation to test
+//		loc0 – the code for the location in the first geometry
+//		loc1 – the code for the location in the second geometry
+func (o *OverlayNG) isResultOfOp(overlayOpCode, loc0, loc1 int) bool {
+	if loc0 == calc.ImBoundary {
+		loc0 = calc.ImInterior
+	}
+	if loc1 == calc.ImBoundary {
+		loc1 = calc.ImInterior
+	}
+	switch overlayOpCode {
+	case INTERSECTION:
+		return loc0 == calc.ImInterior && loc1 == calc.ImInterior
+	case UNION:
+		return loc0 == calc.ImInterior || loc1 == calc.ImInterior
+	case DIFFERENCE:
+		return loc0 == calc.ImInterior && loc1 != calc.ImInterior
+	case SYMDIFFERENCE:
+		return (loc0 == calc.ImInterior && loc1 != calc.ImInterior) ||
+			(loc0 != calc.ImInterior && loc1 == calc.ImInterior)
+	}
+	return false
 }

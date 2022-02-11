@@ -41,6 +41,7 @@ const (
 	ClockWise        = -1
 	CounterClockWise = 1
 
+	SideOn	  = 0
 	SideLeft  = 1
 	SideRight = 2
 

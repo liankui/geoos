@@ -244,3 +244,14 @@ func (e *EdgeNodingBuilder) addEdge(pts []matrix.Matrix, info *EdgeSourceInfo) {
 	ss := noding.NewNodedSegmentString(pts, info)
 	e.inputEdges = append(e.inputEdges, ss)
 }
+
+// hasEdgesFor Reports whether there are noded edges for the given input geometry.
+// If there are none, this indicates that either the geometry was empty, or has completely
+// collapsed (because it is smaller than the noding precision).
+// Params:
+//		geomIndex – index of input geometry
+// Returns:
+//		true if there are edges for the geometry
+func (e *EdgeNodingBuilder) hasEdgesFor(geomIndex int) bool {
+	return e.hasEdges[geomIndex]
+}

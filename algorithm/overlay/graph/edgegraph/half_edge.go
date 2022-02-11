@@ -6,11 +6,6 @@ import (
 	"reflect"
 )
 
-type IHalfEdge interface {
-	ToString() string
-	DirectionPt() matrix.Matrix
-}
-
 // Represents a directed component of an edge in an EdgeGraph. HalfEdges link
 // vertices whose locations are defined by Coordinates. HalfEdges start at an
 // origin vertex, and terminate at a destination vertex. HalfEdges always occur
@@ -27,7 +22,6 @@ type IHalfEdge interface {
 // EdgeGraph is useful to allow retrieving edges by vertex and edge location,
 // as well as ensuring edges are created and linked appropriately.
 type HalfEdge struct {
-	IHalfEdge
 	orig      matrix.Matrix
 	sym, next *HalfEdge
 }
@@ -36,41 +30,41 @@ type HalfEdge struct {
 // This must be done for each pair of edges created.
 // Params:
 //		sym – the sym edge to link.
-func (h *HalfEdge) Link(sym IHalfEdge) {
-	h.setSym(sym.(*HalfEdge))
-	sym.(*HalfEdge).setSym(h)
+func (h *HalfEdge) Link(sym *HalfEdge) {
+	h.SetSym(sym)
+	sym.SetSym(h)
 	// set next ptrs for a single segment
-	h.setNext(sym.(*HalfEdge))
-	sym.(*HalfEdge).setNext(h)
+	h.SetNext(sym)
+	sym.SetNext(h)
 }
 
 // Sym Gets the symmetric pair edge of this edge.
 // Returns:
 //		the symmetric pair edge
-func (h *HalfEdge) Sym(e *HalfEdge) *HalfEdge {
+func (h *HalfEdge) Sym() *HalfEdge {
 	return h.sym
 }
 
-// setSym Sets the symmetric (opposite) edge to this edge.
+// SetSym Sets the symmetric (opposite) edge to this edge.
 // Params:
 //		e – the sym edge to set
-func (h *HalfEdge) setSym(e *HalfEdge) {
+func (h *HalfEdge) SetSym(e *HalfEdge) {
 	h.sym = e
 }
 
-// setNext the next edge CCW around the destination vertex of this edge.
+// SetNext the next edge CCW around the destination vertex of this edge.
 // Params:
 //		e – the next edge
-func (h *HalfEdge) setNext(e *HalfEdge) {
+func (h *HalfEdge) SetNext(e *HalfEdge) {
 	h.next = e
 }
 
 // oNext Gets the next edge CCW around the origin of this edge, with the
 // same origin. If the origin vertex has degree 1 then this is the edge itself.
-// e.oNext() is equal to e.sym().next()
+// e.ONext() is equal to e.sym().next()
 // Returns:
 //		the next edge around the origin
-func (h *HalfEdge) oNext() *HalfEdge {
+func (h *HalfEdge) ONext() *HalfEdge {
 	return h.sym.next
 }
 
@@ -81,7 +75,7 @@ func (h *HalfEdge) oNext() *HalfEdge {
 //		eAdd – the edge to insert
 func (h *HalfEdge) Insert(eAdd *HalfEdge) {
 	// If this is only edge at origin, insert it after this
-	if h.oNext() == h {
+	if h.ONext() == h {
 		// set linkage so ring is correct
 		h.insertAfter(eAdd)
 		return
@@ -100,7 +94,7 @@ func (h *HalfEdge) Insert(eAdd *HalfEdge) {
 func (h *HalfEdge) insertionEdge(eAdd *HalfEdge) *HalfEdge {
 	ePrev := h
 	for ePrev != h {
-		eNext := ePrev.oNext()
+		eNext := ePrev.ONext()
 		/**
 		 * Case 1: General case,
 		 * with eNext higher than ePrev.
@@ -136,9 +130,9 @@ func (h *HalfEdge) insertAfter(e *HalfEdge) {
 	if !reflect.DeepEqual(h.orig, e.orig) {
 		return
 	}
-	save := h.oNext()
-	h.sym.setNext(e)
-	e.sym.setNext(save)
+	save := h.ONext()
+	h.sym.SetNext(e)
+	e.sym.SetNext(save)
 }
 
 // compareTo Compares edges which originate at the same vertex based on the
@@ -174,6 +168,5 @@ func (h *HalfEdge) DirectionPt() matrix.Matrix {
 // Returns:
 //		a string representation
 func (h *HalfEdge) ToString() string {
-	return fmt.Sprintf("HE(%v %v, %v %v)",
-		h.orig[0], h.orig[0], h.sym.orig[0], h.sym.orig[0])
+	return fmt.Sprintf("HE(%v %v, %v %v)", h.orig[0], h.orig[0], h.sym.orig[0], h.sym.orig[0])
 }
