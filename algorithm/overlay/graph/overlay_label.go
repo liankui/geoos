@@ -112,6 +112,19 @@ func (o *OverlayLabel) initNotPart(index int) {
 	}
 }
 
+// isBoundary Tests if a label is for an edge which is in the boundary of a source geometry.
+// Collapses are not reported as being in the boundary.
+// Params:
+//		index – the index of the input geometry
+// Returns:
+//		true if the label is a boundary for the source
+func (o *OverlayLabel) isBoundary(index int) bool {
+	if index == 0 {
+		return o.aDim == DIM_BOUNDARY
+	}
+	return o.bDim == DIM_BOUNDARY
+}
+
 // isBoundaryEither Tests if a label is for an edge which is in the boundary of either source geometry.
 func (o *OverlayLabel) isBoundaryEither() bool {
 	return o.aDim == DIM_BOUNDARY || o.bDim == DIM_BOUNDARY

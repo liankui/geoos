@@ -1,11 +1,12 @@
 package graph
 
 import (
-	"github.com/spatial-go/geoos/algorithm/matrix"
-	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
-	"github.com/spatial-go/geoos/coordtransform"
-	"github.com/spatial-go/geoos/space"
+	"log"
 	"math"
+	"reflect"
+
+	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
+	"github.com/spatial-go/geoos/space"
 )
 
 const (
@@ -35,13 +36,17 @@ func (o *OverlayUtil) clippingEnvelope(opCode int, inputGeom *InputGeometry, pm 
 	if resultEnv == nil {
 		return nil
 	}
-	clipEnv := RobustClipEnvelopeComputer.getEnvelope(
-		inputGeom.getGeometry(0),
-		inputGeom.getGeometry(1),
-		resultEnv)
 
-	safeEnv := o.safeEnv(clipEnv, pm)
-	return safeEnv
+	// todo 暂时未到这里
+	//clipEnv := RobustClipEnvelopeComputer.getEnvelope(
+	//	inputGeom.getGeometry(0),
+	//	inputGeom.getGeometry(1),
+	//	resultEnv)
+
+	//safeEnv := o.safeEnv(clipEnv, pm)
+	//return safeEnv
+
+	return nil
 }
 
 // Computes an envelope which covers the extent of the result of a given overlay
@@ -111,9 +116,102 @@ func (o *OverlayUtil) isFloating(pm *PrecisionModel) bool {
 	return pm.isFloating()
 }
 
+// createEmptyResult Creates an empty result geometry of the appropriate dimension,
+// based on the given overlay operation and the dimensions of the inputs. The created
+// geometry is an atomic geometry, not a collection (unless the dimension is -1,
+// in which case a GEOMETRYCOLLECTION EMPTY is created.)
+// Params:
+//		dim – the dimension of the empty geometry to create
+//		geomFact – the geometry factory being used for the operation
+// Returns:
+//		an empty atomic geometry of the appropriate dimension
+func (o *OverlayUtil) createEmptyResult(dim int) space.Geometry {
+	var result space.Geometry
+	switch dim {
+	case 0:
+		result = space.Point{}
+	case 1:
+		result = space.LineString{}
+	case 2:
+		result = space.Polygon{}
+	case -1:
+		result = space.Collection{}
+	default:
+		log.Printf("Unable to determine overlay result geometry dimension\n")
+	}
+	return result
+}
+
+// resultDimension Computes the dimension of the result of applying the given operation
+// to inputs with the given dimensions. This assumes that complete collapse does not occur.
+// The result dimension is computed according to the following rules:
+// 		OverlayNG.INTERSECTION - result has the dimension of the lowest input dimension
+//		OverlayNG.UNION - result has the dimension of the highest input dimension
+//		OverlayNG.DIFFERENCE - result has the dimension of the left-hand input
+//		OverlayNG.SYMDIFFERENCE - result has the dimension of the highest input dimension
+//			(since the Symmetric Difference is the Union of the Differences).
+// Params:
+//		opCode – the overlay operation
+//		dim0 – dimension of the LH input
+//		dim1 – dimension of the RH input
+// Returns:
+//		the dimension of the result
+func (o *OverlayUtil) resultDimension(opCode, dim0, dim1 int) int {
+	resultDimension := -1
+	switch opCode {
+	case INTERSECTION:
+		resultDimension = min(dim0, dim1)
+	case UNION:
+		resultDimension = max(dim0, dim1)
+	case DIFFERENCE:
+		resultDimension = dim0
+	case SYMDIFFERENCE:
+		/**
+		 * This result is chosen because
+		 * <pre>
+		 * SymDiff = Union( Diff(A, B), Diff(B, A) )
+		 * </pre>
+		 * and Union has the dimension of the highest-dimension argument.
+		 */
+		resultDimension = max(dim0, dim1)
+	}
+	return resultDimension
+}
+
+// createResultGeometry Creates an overlay result geometry for homogeneous or mixed components.
+// Params:
+//		resultPolyList – the list of result polygons (may be empty or null)
+//		resultLineList – the list of result lines (may be empty or null)
+//		resultPointList – the list of result points (may be empty or null)
+// Returns:
+//		a geometry structured according to the overlay result semantics
+func (o *OverlayUtil) createResultGeometry(resultPolyList []space.Polygon, resultLineList []space.LineString,
+	resultPointList []space.Point) space.Geometry {
+
+	geomList := make([]space.Geometry, 0)
+	// element geometries of the result are always in the order A,L,P
+	if resultPolyList != nil {
+		for _, polygon := range resultPolyList {
+			geomList = append(geomList, polygon)
+		}
+	}
+	if resultLineList != nil {
+		for _, lineString := range resultLineList {
+			geomList = append(geomList, lineString)
+		}
+	}
+	if resultPointList != nil {
+		for _, point := range resultPointList {
+			geomList = append(geomList, point)
+		}
+	}
+
+	return o.buildGeometry(geomList)
+}
+
 // toLines...
 func (o *OverlayUtil) toLines(graph *OverlayGraph, isOutputEdges bool) space.Geometry {
-	lines := make([]matrix.LineMatrix, 0)
+	lines := make([]space.LineString, 0)
 	for _, edge := range graph.edges {
 		includeEdge := isOutputEdges || edge.isInResultArea
 		if !includeEdge {
@@ -125,19 +223,85 @@ func (o *OverlayUtil) toLines(graph *OverlayGraph, isOutputEdges bool) space.Geo
 		for _, pt := range pts {
 			tmp = append(tmp, pt)
 		}
-		var line matrix.LineMatrix = tmp
+		var line space.LineString = tmp
 
 		//line.setUserData(labelForResult(edge) )
 		lines = append(lines, line)
 	}
 
-	// todo 暂时使用geoos的构建方式
-	var trans coordtransform.Transformer
-	lineMatrices := trans.TransformMultiLineString(lines)
-
-	var linesTmp space.MultiLineString
-	for _, lineMatrix := range lineMatrices {
-		linesTmp = append(linesTmp, space.LineString(lineMatrix))
+	tmpLines := make([]space.Geometry, 0)
+	for _, line := range lines {
+		tmpLines = append(tmpLines, line)
 	}
-	return linesTmp
+	return o.buildGeometry(tmpLines)
+}
+
+// buildGeometry Build an appropriate Geometry, MultiGeometry, or GeometryCollection to
+// contain the Geometrys in it. For example:
+//		If geomList contains a single Polygon, the Polygon is returned.
+//		If geomList contains several Polygons, a MultiPolygon is returned.
+//		If geomList contains some Polygons and some LineStrings, a GeometryCollection is returned.
+//		If geomList is empty, an empty GeometryCollection is returned
+// Note that this method does not "flatten" Geometries in the input, and hence if any
+// MultiGeometries are contained in the input a GeometryCollection containing them will be returned.
+// Params:
+//		geomList – the Geometrys to combine
+// Returns:
+//		a Geometry of the "smallest", "most type-specific" class that can contain the elements of geomList .
+func (o *OverlayUtil) buildGeometry(geomList []space.Geometry) space.Geometry {
+	// Determine some facts about the geometries in the list
+	var geomClass interface{}
+	isHeterogeneous := false
+	hasGeometryCollection := false
+	for _, geom := range geomList {
+		partClass := reflect.TypeOf(geom)
+		if geomClass == nil {
+			geomClass = partClass
+		}
+		if partClass != geomClass {
+			isHeterogeneous = true
+		}
+		switch geom.(type) {
+		case space.Collection:
+			hasGeometryCollection = true
+		}
+	}
+
+	// Now construct an appropriate geometry to return
+	// for the empty geometry, return an empty GeometryCollection
+	if geomClass == nil {
+		return space.Collection{}
+	}
+	if isHeterogeneous || hasGeometryCollection {
+		return space.Collection(geomList)
+	}
+
+	// at this point we know the collection is hetereogenous.
+	// Determine the type of the result from the first Geometry in the list
+	// this should always return a geometry, since otherwise an empty collection would have already been returned
+	geom0 := geomList[0]
+	isCollection := len(geomList) > 1
+	if isCollection {
+		switch geom0.(type) {
+		case space.Polygon:
+			tmp := make([]space.Polygon, 0)
+			for _, geom := range geomList {
+				tmp = append(tmp, geom.(space.Polygon))
+			}
+			return space.MultiPolygon(tmp)
+		case space.LineString:
+			tmp := make([]space.LineString, 0)
+			for _, geom := range geomList {
+				tmp = append(tmp, geom.(space.LineString))
+			}
+			return space.MultiLineString(tmp)
+		case space.Point:
+			tmp := make([]space.Point, 0)
+			for _, geom := range geomList {
+				tmp = append(tmp, geom.(space.Point))
+			}
+			return space.MultiPoint(tmp)
+		}
+	}
+	return geom0
 }

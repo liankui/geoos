@@ -154,18 +154,19 @@ func (o *OverlayNG) extractResult(opCode int, graph *OverlayGraph) space.Geometr
 		hasResultComponents := hasResultAreaComponents || len(resultLineList) > 0
 		allowResultPoints := !hasResultComponents || isAllowMixedIntResult
 		if o.OpCode == INTERSECTION && allowResultPoints {
-			 pointBuilder := new IntersectionPointBuilder(graph, geomFact);
-			pointBuilder.setStrictMode(isStrictMode);
+			pointBuilder := NewIntersectionPointBuilder(graph, o.isStrictMode)
+			pointBuilder.setStrictMode(o.isStrictMode)
 			resultPointList = pointBuilder.getPoints()
 		}
 	}
 
-	if (isEmpty(resultPolyList) && isEmpty(resultLineList) && isEmpty(resultPointList)){
-		return createEmptyResult()
+	if resultPolyList == nil && resultLineList == nil && resultPointList == nil {
+		return o.createEmptyResult()
 	}
 
-	Geometry resultGeom = OverlayUtil.createResultGeometry(resultPolyList, resultLineList, resultPointList, geomFact);
-	return resultGeom;
+	var overlayUtil OverlayUtil
+	resultGeom := overlayUtil.createResultGeometry(resultPolyList, resultLineList, resultPointList)
+	return resultGeom
 }
 
 // isResultOfOp Tests whether a point with given Locations relative to two geometries
@@ -196,4 +197,12 @@ func (o *OverlayNG) isResultOfOp(overlayOpCode, loc0, loc1 int) bool {
 			(loc0 != calc.ImInterior && loc1 == calc.ImInterior)
 	}
 	return false
+}
+
+func (o *OverlayNG) createEmptyResult() space.Geometry {
+	var overlayUtil OverlayUtil
+	return overlayUtil.createEmptyResult(
+		overlayUtil.resultDimension(o.OpCode,
+			o.InputGeom.getDimension(0),
+			o.InputGeom.getDimension(1)))
 }
