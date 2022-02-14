@@ -1,7 +1,6 @@
 package matrix
 
 import (
-	"github.com/spatial-go/geoos/space"
 	"reflect"
 )
 
@@ -92,7 +91,7 @@ func (c CoordinateList) ToPts() []Matrix {
 }
 
 // ToPts...
-func (c CoordinateList) ToLineString() space.LineString {
+func (c CoordinateList) ToLineString() LineMatrix {
 	tmp := make([][]float64, 0)
 	for _, matrix := range c {
 		tmp = append(tmp, matrix)

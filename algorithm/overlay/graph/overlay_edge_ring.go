@@ -65,7 +65,7 @@ func (o *OverlayEdgeRing) computeRing(ringPts []matrix.Matrix) {
 	o.ring = space.Ring(matrix.CoordinateList(ringPts).ToLineString()) // geometryFactory.createLinearRing(ringPts)
 
 	var orient measure.Orientation
-	o.isHole = orient.IsCCW(o.ring)
+	o.isHole = orient.IsCCW(matrix.LineMatrix(o.ring))
 }
 
 // findEdgeRingContaining Finds the innermost enclosing shell OverlayEdgeRing containing

@@ -15,7 +15,7 @@ const (
 )
 
 type EdgeNodingBuilder struct {
-	precisionModel *PrecisionModel
+	precisionModel *noding.PrecisionModel
 	inputEdges     []*noding.NodedSegmentString
 	customNoder    noding.Noder
 	clipEnv        *envelope.Envelope
@@ -25,7 +25,7 @@ type EdgeNodingBuilder struct {
 }
 
 // NewEdgeNodingBuilder...
-func NewEdgeNodingBuilder(pm *PrecisionModel, noder noding.Noder) *EdgeNodingBuilder {
+func NewEdgeNodingBuilder(pm *noding.PrecisionModel, noder noding.Noder) *EdgeNodingBuilder {
 	return &EdgeNodingBuilder{
 		precisionModel: pm,
 		customNoder:    noder,
@@ -33,7 +33,7 @@ func NewEdgeNodingBuilder(pm *PrecisionModel, noder noding.Noder) *EdgeNodingBui
 }
 
 // createFixedPrecisionNoder...
-func (e *EdgeNodingBuilder) createFixedPrecisionNoder(precisionModel *PrecisionModel) noding.Noder {
+func (e *EdgeNodingBuilder) createFixedPrecisionNoder(precisionModel *noding.PrecisionModel) noding.Noder {
 	noder := noding.NewSnapRoundingNoder(precisionModel)
 	return noder
 }
@@ -66,7 +66,7 @@ func (e *EdgeNodingBuilder) getNoder() noding.Noder {
 	if e.customNoder != nil {
 		return e.customNoder
 	}
-	if e.precisionModel.isFloating() {
+	if e.precisionModel.IsFloating() {
 		return e.createFloatingPrecisionNoder(IS_NODING_VALIDATED)
 	}
 	return e.createFixedPrecisionNoder(e.precisionModel)
@@ -213,7 +213,7 @@ func (e *EdgeNodingBuilder) computeDepthDelta(ring space.Ring, isHole bool) int 
 	 * since topology collapse can make the orientation computation give the wrong answer.
 	 */
 	var o measure.Orientation
-	isCCW := o.IsCCW(ring)
+	isCCW := o.IsCCW(matrix.LineMatrix(ring))
 	/**
 	 * Compute whether ring is in canonical orientation or not.
 	 * Canonical orientation for the overlay process is

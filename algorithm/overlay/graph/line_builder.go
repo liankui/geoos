@@ -198,5 +198,5 @@ func (l *LineBuilder) toLine(edge *OverlayEdge) space.LineString {
 	edge.addCoordinates(pts.ToPts())
 
 	ptsOut := pts.ToCoordinateArray(isForward)
-	return ptsOut.ToLineString()
+	return space.LineString(ptsOut.ToLineString())
 }

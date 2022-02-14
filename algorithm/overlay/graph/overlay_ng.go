@@ -7,11 +7,9 @@ import (
 	"github.com/spatial-go/geoos/space"
 )
 
-const ()
-
 type OverlayNG struct {
 	G0, G1    space.Geometry
-	Pm        *PrecisionModel
+	Pm        *noding.PrecisionModel
 	OpCode    int
 	Noder     noding.Noder
 	InputGeom *InputGeometry
@@ -30,7 +28,7 @@ func (o *OverlayNG) overlay(g0, g1 space.Geometry, opCode int) space.Geometry {
 	ov := OverlayNG{
 		G0:     g0,
 		G1:     g1,
-		Pm:     NewPrecisionModel(),
+		Pm:     noding.NewPrecisionModel(),
 		OpCode: opCode,
 	}
 	return ov.getResult()

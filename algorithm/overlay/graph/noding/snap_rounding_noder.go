@@ -1,7 +1,5 @@
 package noding
 
-import "github.com/spatial-go/geoos/algorithm/overlay/graph"
-
 // Uses Snap Rounding to compute a rounded, fully noded arrangement from a set of
 // SegmentStrings, in a performant way, and avoiding unnecessary noding.
 // Implements the Snap Rounding technique described in the papers by Hobby,
@@ -18,13 +16,13 @@ import "github.com/spatial-go/geoos/algorithm/overlay/graph"
 // vertices will be noded. This still provides fully-noded output. This is the same behaviour
 // provided by other noders, such as MCIndexNoder and org.locationtech.jts.noding.snap.SnappingNoder.
 type SnapRoundingNoder struct {
-	precisionModel *graph.PrecisionModel
+	precisionModel *PrecisionModel
 	pixelIndex     *HotPixelIndex
 	snappedResult  []NodedSegmentString
 }
 
 // NewSnapRoundingNoder...
-func NewSnapRoundingNoder(pm *graph.PrecisionModel) *SnapRoundingNoder {
+func NewSnapRoundingNoder(pm *PrecisionModel) *SnapRoundingNoder {
 	return &SnapRoundingNoder{
 		precisionModel: pm,
 		pixelIndex:     NewHotPixelIndex(pm),

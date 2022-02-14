@@ -1,4 +1,4 @@
-package graph
+package noding
 
 type Type string
 
@@ -73,7 +73,7 @@ func NewPrecisionModel() *PrecisionModel {
 }
 
 // Tests whether the precision model supports floating point
-func (p *PrecisionModel) isFloating() bool {
+func (p *PrecisionModel) IsFloating() bool {
 	if p.ModelType == FLOATING || p.ModelType == FLOATING_SINGLE {
 		return true
 	}

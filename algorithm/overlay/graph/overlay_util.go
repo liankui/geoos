@@ -1,6 +1,7 @@
 package graph
 
 import (
+	"github.com/spatial-go/geoos/algorithm/overlay/graph/noding"
 	"log"
 	"math"
 	"reflect"
@@ -31,7 +32,7 @@ type OverlayUtil struct {
 //		pm – the precision model being used
 // Returns:
 //		an envelope for clipping and line limiting, or null if no clipping is performed
-func (o *OverlayUtil) clippingEnvelope(opCode int, inputGeom *InputGeometry, pm *PrecisionModel) *envelope.Envelope {
+func (o *OverlayUtil) clippingEnvelope(opCode int, inputGeom *InputGeometry, pm *noding.PrecisionModel) *envelope.Envelope {
 	resultEnv := o.resultEnvelope(opCode, inputGeom, pm)
 	if resultEnv == nil {
 		return nil
@@ -61,7 +62,7 @@ func (o *OverlayUtil) clippingEnvelope(opCode int, inputGeom *InputGeometry, pm 
 //		pm –
 //Returns:
 //		the result envelope, or null if the full extent
-func (o *OverlayUtil) resultEnvelope(opCode int, inputGeom *InputGeometry, pm *PrecisionModel) *envelope.Envelope {
+func (o *OverlayUtil) resultEnvelope(opCode int, inputGeom *InputGeometry, pm *noding.PrecisionModel) *envelope.Envelope {
 	overlapEnv := new(envelope.Envelope)
 	switch opCode {
 	case INTERSECTION:
@@ -82,7 +83,7 @@ func (o *OverlayUtil) resultEnvelope(opCode int, inputGeom *InputGeometry, pm *P
 //		pm – the precision model
 // Returns:
 //		a safe envelope to use for clipping
-func (o *OverlayUtil) safeEnv(env *envelope.Envelope, pm *PrecisionModel) *envelope.Envelope {
+func (o *OverlayUtil) safeEnv(env *envelope.Envelope, pm *noding.PrecisionModel) *envelope.Envelope {
 	envExpandDist := o.safeExpandDistance(env, pm)
 	safeEnv := env.Copy()
 	safeEnv.ExpandBy(envExpandDist)
@@ -90,7 +91,7 @@ func (o *OverlayUtil) safeEnv(env *envelope.Envelope, pm *PrecisionModel) *envel
 }
 
 // safeExpandDistance...
-func (o *OverlayUtil) safeExpandDistance(env *envelope.Envelope, pm *PrecisionModel) float64 {
+func (o *OverlayUtil) safeExpandDistance(env *envelope.Envelope, pm *noding.PrecisionModel) float64 {
 	var envExpandDist float64
 	if o.isFloating(pm) {
 		// if PM is FLOAT then there is no scale factor, so add 10%
@@ -109,11 +110,11 @@ func (o *OverlayUtil) safeExpandDistance(env *envelope.Envelope, pm *PrecisionMo
 }
 
 // isFloating A null-handling wrapper for PrecisionModel.isFloating()
-func (o *OverlayUtil) isFloating(pm *PrecisionModel) bool {
+func (o *OverlayUtil) isFloating(pm *noding.PrecisionModel) bool {
 	if pm == nil {
 		return true
 	}
-	return pm.isFloating()
+	return pm.IsFloating()
 }
 
 // createEmptyResult Creates an empty result geometry of the appropriate dimension,

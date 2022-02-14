@@ -2,7 +2,6 @@ package measure
 
 import (
 	"github.com/spatial-go/geoos/algorithm/matrix"
-	"github.com/spatial-go/geoos/space"
 )
 
 const (
@@ -37,7 +36,7 @@ type Orientation struct {
 //		ring – a CoordinateSequence forming a ring (with first and last point identical)
 // Returns:
 //		true if the ring is oriented counter-clockwise.
-func (o Orientation) IsCCW(ring space.Ring) bool {
+func (o Orientation) IsCCW(ring matrix.LineMatrix) bool {
 	// of points without closing endpoint
 	nPts := len(ring) - 1
 	// return default value if ring is flat
