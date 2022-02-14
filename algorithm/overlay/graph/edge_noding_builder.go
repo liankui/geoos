@@ -40,12 +40,11 @@ func (e *EdgeNodingBuilder) createFixedPrecisionNoder(precisionModel *noding.Pre
 
 // createFloatingPrecisionNoder...
 func (e *EdgeNodingBuilder) createFloatingPrecisionNoder(doValidation bool) noding.Noder {
-	var n noding.Noder // todo 结构有些难以理解，需要验证这样写是否正确
-	mcNoder := n.(*noding.MCIndexNoder)
+	mcNoder := new(noding.MCIndexNoder)
 	li := new(noding.LineIntersector)
 	mcNoder.SetSinglePassNoder(noding.NewIntersectionAdder(li))
 
-	noder := n
+	var noder noding.Noder = mcNoder
 	if doValidation {
 		noder = noding.NewValidatingNoder(noder)
 	}
@@ -85,6 +84,7 @@ func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) []*Edge {
 	e.add(g0, 0)
 	e.add(g1, 1)
 	nodedEdges := e.node(e.inputEdges)
+
 	/**
 	 * Merge the noded edges to eliminate duplicates.
 	 * Labels are combined.
@@ -153,14 +153,18 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 	if ring.IsEmpty() {
 		return
 	}
+
 	if e.isClippedCompletely(ring.GetEnvelopeInternal()) {
 		return
 	}
+
 	pts := e.clip(ring)
+
 	// Don't add edges that collapse to a point
 	if len(pts) < 2 {
 		return
 	}
+
 	depthDelta := e.computeDepthDelta(ring, isHole)
 	info := NewEdgeSourceInfo(index, depthDelta, isHole)
 	e.addEdge(pts, info)
@@ -176,14 +180,15 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 // Returns:
 //		the points in the clipped line
 func (e *EdgeNodingBuilder) clip(ring space.Ring) []matrix.Matrix {
-	pts := ring.ToMatrix().Bound() // todo Coordinate,xyz坐标系
-	coordList := matrix.CoordinateList{}
+	pts := ring.ToMatrix().Bound()
 	env := ring.GetEnvelopeInternal()
+
 	/**
 	 * If no clipper or ring is completely contained then no need to clip.
 	 * But repeated points must be removed to ensure correct noding.
 	 */
 	if e.clipper == nil || e.clipEnv.Covers(env) {
+		coordList := matrix.CoordinateList{}
 		return coordList.RemoveRepeatedPoints(pts)
 	}
 	return e.clipper.clip(pts)
@@ -220,7 +225,7 @@ func (e *EdgeNodingBuilder) computeDepthDelta(ring space.Ring, isHole bool) int 
 	 * Shells : CW, Holes: CCW
 	 */
 	isOriented := true
-	if isHole {
+	if !isHole {
 		isOriented = !isCCW
 	} else {
 		isOriented = isCCW

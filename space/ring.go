@@ -160,11 +160,11 @@ func (r Ring) ComputeEnvelopeInternal() *envelope.Envelope {
 
 // GetEnvelopeInternal get ring internal envelop.
 func (r Ring) GetEnvelopeInternal() *envelope.Envelope {
-	matrices := r.ToMatrix().Bound()
-	if matrices == nil || len(matrices) == 0 {
+	env := envelope.Bound(r.ToMatrix().Bound())
+	if env == nil {
 		return LineString(r).ComputeEnvelopeInternal()
 	}
-	return envelope.Empty()
+	return envelope.Env(env)
 }
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry

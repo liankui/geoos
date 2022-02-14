@@ -8,7 +8,6 @@ import (
 )
 
 type OverlayNG struct {
-	G0, G1    space.Geometry
 	Pm        *noding.PrecisionModel
 	OpCode    int
 	Noder     noding.Noder
@@ -16,25 +15,41 @@ type OverlayNG struct {
 
 	STRICT_MODE_DEFAULT bool // default=false
 	isStrictMode        bool // =STRICT_MODE_DEFAULT
-	isOptimized         bool // todo default=true
+	isOptimized         bool // default=true
 	isAreaResultOnly    bool
 	isOutputEdges       bool
 	isOutputResultEdges bool
 	isOutputNodedEdges  bool
 }
 
-// overlay 主函数入口，得到计算后的多边形
-func (o *OverlayNG) overlay(g0, g1 space.Geometry, opCode int) space.Geometry {
-	ov := OverlayNG{
-		G0:     g0,
-		G1:     g1,
-		Pm:     noding.NewPrecisionModel(),
-		OpCode: opCode,
+// NewOverlayNG...
+func NewOverlayNG(geom0, geom1 space.Geometry, opCode int) *OverlayNG {
+	return &OverlayNG{
+		Pm:          noding.NewPrecisionModel(),
+		OpCode:      opCode,
+		InputGeom:   NewInputGeometry(geom0, geom1),
+		isOptimized: true,
 	}
+}
+
+// overlay Computes an overlay operation on the given geometry operands, using the
+// precision model of the geometry. and an appropriate noder.
+// The noder is chosen according to the precision model specified.
+//		For PrecisionModel.FIXED a snap-rounding noder is used, and the computation is robust.
+//		For PrecisionModel.FLOATING a non-snapping noder is used, and this computation
+//	  		may not be robust. If errors occur a TopologyException is thrown.
+// Params:
+//		geom0 – the first argument geometry
+//		geom1 – the second argument geometry
+// 		opCode – the code for the desired overlay operation
+// Returns:
+//		the result of the overlay operation
+func (o *OverlayNG) overlay(g0, g1 space.Geometry, opCode int) space.Geometry {
+	ov := NewOverlayNG(g0, g1, opCode)
 	return ov.getResult()
 }
 
-// getResult...
+// getResult Gets the result of the overlay operation.
 func (o *OverlayNG) getResult() space.Geometry {
 	// 步骤1： handle empty inputs which determine result
 

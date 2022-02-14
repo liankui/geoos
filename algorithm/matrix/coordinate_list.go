@@ -46,17 +46,16 @@ func (c CoordinateList) CoordinateList(coord []Matrix, allowRepeated bool) Coord
 //		allowRepeated – if set to false, repeated coordinates are collapsed
 //		direction – if false, the array is added in reverse order
 func (c CoordinateList) AddWithDirection(coord []Matrix, allowRepeated, direction bool) CoordinateList {
-	tmp := c
 	if direction {
 		for i := 0; i < len(coord); i++ {
-			tmp = tmp.AddToEndList(coord[i], allowRepeated)
+			c = c.AddToEndList(coord[i], allowRepeated)
 		}
 	} else {
 		for i := len(coord) - 1; i >= 0; i-- {
-			tmp = tmp.AddToEndList(coord[i], allowRepeated)
+			c = c.AddToEndList(coord[i], allowRepeated)
 		}
 	}
-	return tmp
+	return c
 }
 
 // AddToEndList Adds a coordinate to the end of the list.
@@ -72,9 +71,7 @@ func (c CoordinateList) AddToEndList(coord Matrix, allowRepeated bool) Coordinat
 			}
 		}
 	}
-	tmp := c
-	tmp = append(tmp, coord)
-	return tmp
+	return append(c, coord)
 }
 
 // CloseRing Ensure this coordList is a ring, by adding the start point if necessary

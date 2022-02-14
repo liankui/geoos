@@ -236,9 +236,9 @@ func (ls LineString) GetEnvelopeInternal() *envelope.Envelope {
 
 // expandEnvelope LineString expend envelop.
 func (ls LineString) expandEnvelope(env *envelope.Envelope) *envelope.Envelope {
-	matrices := ls.ToMatrix().Bound()	// 需要验证这样写是否正确
+	matrices := ls.ToMatrix().Bound()
 	for _, m := range matrices {
-		env.ExpandToInclude(m[0], m[1])
+		env.ExpandToIncludeMatrix(m)
 	}
 	return env
 }

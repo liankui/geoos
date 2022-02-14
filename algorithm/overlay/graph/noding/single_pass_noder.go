@@ -21,9 +21,7 @@ func (s SinglePassNoder) SetSinglePassNoder(segInt SegmentIntersector) *SinglePa
 // others may only add some or none at all.
 // Params:
 //		segStrings – a collection of SegmentStrings to node
-func (s SinglePassNoder) ComputeNodes(segStrings interface{}) {
-
-}
+func (s SinglePassNoder) ComputeNodes(segStrings interface{}) {}
 
 // getNodedSubstrings Returns a Collection of fully noded SegmentStrings.
 // The SegmentStrings have the same context as their parent.

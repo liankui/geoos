@@ -10,7 +10,7 @@ import "github.com/spatial-go/geoos/algorithm/calc"
 // That information is used to construct the topology graph OverlayLabels.
 type EdgeSourceInfo struct {
 	index      int
-	dim        int // default -999
+	dim        int // default=-999
 	isHole     bool
 	depthDelta int
 }

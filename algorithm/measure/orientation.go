@@ -43,6 +43,7 @@ func (o Orientation) IsCCW(ring matrix.LineMatrix) bool {
 	if nPts < 3 {
 		return false
 	}
+
 	/**
 	 * Find first highest point after a lower point, if one exists
 	 * (e.g. a rising segment)
@@ -55,7 +56,7 @@ func (o Orientation) IsCCW(ring matrix.LineMatrix) bool {
 	prevY := upHiPt[1]
 	upLowPt := matrix.Matrix{}
 	iUpHi := 0
-	for i := 0; i <= nPts; i++ {
+	for i := 1; i <= nPts; i++ {
 		py := ring[i][1]
 		/**
 		 * If segment is upwards and endpoint is higher, record it
@@ -73,6 +74,7 @@ func (o Orientation) IsCCW(ring matrix.LineMatrix) bool {
 	if iUpHi == 0 {
 		return false
 	}
+
 	/**
 	 * Find the next lower point after the high point
 	 * (e.g. a falling segment).
@@ -101,7 +103,6 @@ func (o Orientation) IsCCW(ring matrix.LineMatrix) bool {
 	 *    In this case the top of the cap is flat.
 	 *    The ring orientation is given by the direction of the flat segment
 	 */
-
 	if upHiPt.Equals(matrix.Matrix(downHiPt)) {
 		/**
 		 * Check for the case where the cap has configuration A-B-A.

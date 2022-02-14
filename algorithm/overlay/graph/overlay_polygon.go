@@ -95,7 +95,7 @@ func (p *PolygonOverlay) Intersection() (matrix.Steric, error) {
 
 	// special case: if one input is empty ==> empty
 	if p.Subject.IsEmpty() || p.Clipping.IsEmpty() {
-		return op.CreateEmptyResult(INTERSECTION, p.Subject, p.Clipping)
+		//return op.CreateEmptyResult(INTERSECTION, p.Subject, p.Clipping)
 	}
 
 	//switch p.Subject.(type) {

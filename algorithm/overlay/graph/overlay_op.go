@@ -4,6 +4,7 @@ package graph
 import (
 	"github.com/spatial-go/geoos/algorithm"
 	"github.com/spatial-go/geoos/algorithm/matrix"
+	"github.com/spatial-go/geoos/space"
 )
 
 const (
@@ -18,18 +19,30 @@ type OverlayOp struct {
 	//matrix.Steric
 }
 
-/*
-CreateEmptyResult Creates an empty result geometry of the appropriate dimension,
-based on the given overlay operation and the dimensions of the inputs.
-The created geometry is always an atomic geometry, not a collection.
-*/
-func (o *OverlayOp) CreateEmptyResult(overlayOpCode int, a, b matrix.Steric) (matrix.Steric, error) {
+// CreateEmptyResult Creates an empty result geometry of the appropriate dimension,
+// based on the given overlay operation and the dimensions of the inputs. The created
+// geometry is always an atomic geometry, not a collection.
+// The empty result is constructed using the following rules:
+//		INTERSECTION - result has the dimension of the lowest input dimension
+//		UNION - result has the dimension of the highest input dimension
+//		DIFFERENCE - result has the dimension of the left-hand input
+//		SYMDIFFERENCE - result has the dimension of the highest input dimension (since
+//			the symmetric Difference is the union of the differences).
+// Params:
+//		overlayOpCode – the code for the overlay operation being performed
+//		a – an input geometry
+//		b – an input geometry
+// Returns:
+//		an empty atomic geometry of the appropriate dimension
+func (o *OverlayOp) CreateEmptyResult(overlayOpCode int, a, b space.Geometry) (space.Geometry, error) {
 	resultDim := o.resultDimension(overlayOpCode, a, b)
-	result, _ := createEmpty(resultDim)
+	// Handles resultSDim = -1, although should not happen
+	result, _ := o.createEmpty(resultDim)
 	return result, nil
 }
 
-func (o *OverlayOp) resultDimension(opCode int, g0, g1 matrix.Steric) int {
+// resultDimension...
+func (o *OverlayOp) resultDimension(opCode int, g0, g1 space.Geometry) int {
 	dim0 := g0.Dimensions()
 	dim1 := g1.Dimensions()
 
@@ -48,22 +61,28 @@ func (o *OverlayOp) resultDimension(opCode int, g0, g1 matrix.Steric) int {
 	return resultDimension
 }
 
-func createEmpty(dimension int) (matrix.Steric, error) {
+// createEmpty Creates an empty atomic geometry of the given dimension. If passed
+// a dimension of -1 will create an empty GeometryCollection.
+// Params:
+//		dimension – the required dimension (-1, 0, 1 or 2)
+// Returns:
+//		an empty atomic geometry of given dimension
+func (o *OverlayOp) createEmpty(dimension int) (space.Geometry, error) {
 	switch dimension {
 	case -1:
-		//return createGeometryCollection()
+		return space.Collection{}, nil
 	case 0:
-		//return createPoint()
+		return space.Point{}, nil
 	case 1:
-		//return createLineString()
+		return space.LineString{}, nil
 	case 2:
-		//return createPolygon()
+		return space.Polygon{}, nil
 	default:
 		return nil, algorithm.ErrInvalidDimension(dimension)
 	}
-	return nil, nil
 }
 
+// max return int
 func max(a, b int) int {
 	if a >= b {
 		return a
@@ -71,6 +90,7 @@ func max(a, b int) int {
 	return b
 }
 
+// min return int
 func min(a, b int) int {
 	if a <= b {
 		return a
@@ -78,6 +98,7 @@ func min(a, b int) int {
 	return b
 }
 
+// Overlay...
 func (o *OverlayOp) Overlay(a, b matrix.Steric, opCode int) (matrix.Steric, error) {
 
 

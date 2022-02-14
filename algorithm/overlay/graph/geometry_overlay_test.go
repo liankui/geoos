@@ -11,7 +11,7 @@ func TestUnion(t *testing.T) {
 	b, _ := wkt.UnmarshalString("POLYGON ((5 5, 15 5, 15 15, 5 15, 5 5))")
 	fmt.Printf("a=%+v\n", a)
 	fmt.Printf("b=%+v\n", b)
-	//var ol OverlayNG
-	//result := ol.overlay(a, b, UNION)
-	//fmt.Printf("[result]=%+v\n", result)
+	var ol GeometryOverlay
+	result := ol.union(a, b)
+	fmt.Printf("[result]=%+v\n", result)
 }

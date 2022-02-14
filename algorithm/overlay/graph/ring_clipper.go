@@ -62,7 +62,7 @@ func (r *RingClipper) clipToBoxEdge(pts []matrix.Matrix, edgeIndex int, closeRin
 	for i := 0; i < len(pts); i++ {
 		p1 := pts[i]
 		if r.isInsideEdge(p1, edgeIndex) {
-			if r.isInsideEdge(p0, edgeIndex) {
+			if !r.isInsideEdge(p0, edgeIndex) {
 				intPt := r.intersection(p0, p1, edgeIndex)
 				ptsClip = ptsClip.AddToEndList(intPt, false)
 			}
@@ -74,6 +74,7 @@ func (r *RingClipper) clipToBoxEdge(pts []matrix.Matrix, edgeIndex int, closeRin
 		// else p0-p1 is outside box, so it is dropped
 		p0 = p1
 	}
+
 	// add closing point if required
 	if closeRing && len(ptsClip) > 0 {
 		start := ptsClip[0]
@@ -85,7 +86,7 @@ func (r *RingClipper) clipToBoxEdge(pts []matrix.Matrix, edgeIndex int, closeRin
 	return ptsClip
 }
 
-// Computes the intersection point of a segment with an edge of the clip box.
+// intersection Computes the intersection point of a segment with an edge of the clip box.
 // The segment must be known to intersect the edge.
 // Params:
 //		a – first endpoint of the segment
@@ -102,7 +103,8 @@ func (r *RingClipper) intersection(a, b matrix.Matrix, edgeIndex int) matrix.Mat
 		intPt = matrix.Matrix{r.clipEnvMaxX, r.intersectionLineX(a, b, r.clipEnvMaxX)}
 	case BOX_TOP:
 		intPt = matrix.Matrix{r.intersectionLineY(a, b, r.clipEnvMaxY), r.clipEnvMaxY}
-	case BOX_LEFT:
+	//case BOX_LEFT:
+	default:
 		intPt = matrix.Matrix{r.clipEnvMinX, r.intersectionLineX(a, b, r.clipEnvMinX)}
 	}
 	return intPt
@@ -132,7 +134,8 @@ func (r *RingClipper) isInsideEdge(p matrix.Matrix, edgeIndex int) bool {
 		isInside = p[0] < r.clipEnvMaxX
 	case BOX_TOP:
 		isInside = p[1] < r.clipEnvMaxY
-	case BOX_LEFT:
+	//case BOX_LEFT:
+	default:
 		isInside = p[0] > r.clipEnvMinX
 	}
 	return isInside

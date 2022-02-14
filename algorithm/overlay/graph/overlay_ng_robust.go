@@ -6,6 +6,14 @@ type OverlayNGRobust struct {
 	
 }
 
+// overlay Overlay two geometries, using heuristics to ensure computation completes
+// correctly. In practice the heuristics are observed to be fully correct.
+// Params:
+//		geom0 – a geometry
+//		geom1 – a geometry
+//		opCode – the overlay operation code (from OverlayNG
+// Returns:
+//		the overlay result geometry
 func (o OverlayNGRobust) overlay(geom0, geom1 space.Geometry, opCode int) space.Geometry {
 	/**
 	 * First try overlay with a FLOAT noder, which is fast and causes least
@@ -16,4 +24,15 @@ func (o OverlayNGRobust) overlay(geom0, geom1 space.Geometry, opCode int) space.
 	 */
 	var ov OverlayNG
 	return ov.overlay(geom0, geom1, opCode)
+
+	/**
+	 * On failure retry using snapping noding with a "safe" tolerance.
+	 * if this throws an exception just let it go,
+	 * since it is something that is not a TopologyException
+	 */
+	// todo overlaySnapTries
+
+	// On failure retry using snap-rounding with a heuristic scale factor (grid size).
+	// todo overlaySR
+
 }

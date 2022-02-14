@@ -29,6 +29,9 @@ func (m *MCIndexNoder) ComputeNodes(inputSegStrings interface{}) {
 	for i, _ := range inputSS {
 		m.add(inputSS[i])
 	}
+
+	// todo
+	//m.intersectChains
 }
 
 // getNodedSubstrings...

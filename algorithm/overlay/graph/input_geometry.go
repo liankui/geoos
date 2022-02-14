@@ -13,6 +13,13 @@ type InputGeometry struct {
 	isCollapsed [2]bool
 }
 
+// NewInputGeometry...
+func NewInputGeometry(geomA, geomB space.Geometry) *InputGeometry {
+	return &InputGeometry{
+		geom: [2]space.Geometry{geomA, geomB},
+	}
+}
+
 // getGeometry...
 func (i *InputGeometry) getGeometry(geomIndex int) space.Geometry {
 	return i.geom[geomIndex]
