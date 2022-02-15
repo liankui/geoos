@@ -29,7 +29,7 @@ func (p *PolygonBuilder) getPolygons() []space.Polygon {
 func (p *PolygonBuilder) computePolygons(shellList []*OverlayEdgeRing) []space.Polygon {
 	resultPolyList := make([]space.Polygon, 0)
 	// add Polygons for all shells
-	for _, er := range p.shellList {
+	for _, er := range shellList {
 		poly := er.toPolygon()
 		resultPolyList = append(resultPolyList, poly)
 	}

@@ -11,12 +11,14 @@ type MaximalEdgeRing struct {
 	startEdge *OverlayEdge
 }
 
+// NewMaximalEdgeRing...
 func NewMaximalEdgeRing(e *OverlayEdge) *MaximalEdgeRing {
 	maximalEdgeRing := new(MaximalEdgeRing)
 	maximalEdgeRing.attachEdges(e)
 	return maximalEdgeRing
 }
 
+// attachEdges...
 func (m *MaximalEdgeRing) attachEdges(startEdge *OverlayEdge) {
 	edge := startEdge
 	for edge != startEdge {
@@ -46,13 +48,16 @@ func (m *MaximalEdgeRing) attachEdges(startEdge *OverlayEdge) {
 // Edges are linked in CCW order (which is the order they are linked in the underlying graph).
 // This means that rings have their face on the Right (in other words, the topological location of
 // the face is given by the RHS label of the DirectedEdge). This produces rings with CW orientation.
-// PRECONDITIONS: - This edge is in the result - This edge is not yet linked - The edge and its sym
-// are NOT both marked as being in the result
+// PRECONDITIONS:
+//		- This edge is in the result
+//		- This edge is not yet linked
+//		- The edge and its sym are NOT both marked as being in the result
 func (m *MaximalEdgeRing) linkResultAreaMaxRingAtNode(nodeEdge *OverlayEdge) {
 	if !nodeEdge.isInResultArea {
 		log.Printf("Attempt to link non-result edge")
 		return
 	}
+
 	/**
 	 * Since the node edge is an out-edge,
 	 * make it the last edge to be linked
@@ -63,7 +68,7 @@ func (m *MaximalEdgeRing) linkResultAreaMaxRingAtNode(nodeEdge *OverlayEdge) {
 	endOut := nodeEdge.oNextOE()
 	currOut := endOut
 	state := STATE_FIND_INCOMING
-	currResultIn := &OverlayEdge{}
+	currResultIn := new(OverlayEdge)
 	for currOut != endOut {
 		/**
 		 * If an edge is linked this node has already been processed
@@ -128,9 +133,6 @@ func (m *MaximalEdgeRing) linkMinimalRings() {
 // into a two or more separate rings, as per the OGC SFS polygon topology semantics.
 // This relinking must be done to each max ring separately, rather than all the node
 // result edges, since there may be more than one max ring incident at the node.
-// Params:
-//		nodeEdge – an edge originating at this node
-//		maxRing – the maximal ring to link
 func (m *MaximalEdgeRing) linkMinRingEdgesAtNode(nodeEdge *OverlayEdge, maxRing *MaximalEdgeRing) {
 	// The node edge is an out-edge, so it is the first edge linked with the next CCW in-edge
 	endOut := nodeEdge
@@ -165,6 +167,7 @@ func (m *MaximalEdgeRing) isAlreadyLinked(edge *OverlayEdge, maxRing *MaximalEdg
 	return edge.maxEdgeRing == maxRing && edge.nextResultEdge != nil
 }
 
+// selectMaxOutEdge...
 func (m *MaximalEdgeRing) selectMaxOutEdge(currOut *OverlayEdge, maxEdgeRing *MaximalEdgeRing) *OverlayEdge {
 	if currOut.maxEdgeRing == maxEdgeRing {
 		return currOut
@@ -172,6 +175,7 @@ func (m *MaximalEdgeRing) selectMaxOutEdge(currOut *OverlayEdge, maxEdgeRing *Ma
 	return nil
 }
 
+// linkMaxInEdge...
 func (m *MaximalEdgeRing) linkMaxInEdge(currOut, currMaxRingOut *OverlayEdge, maxEdgeRing *MaximalEdgeRing) *OverlayEdge {
 	currIn := currOut.symOE()
 	if currIn.maxEdgeRing != maxEdgeRing {

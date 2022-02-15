@@ -33,6 +33,7 @@ func (e *Edge) IsCollapsed(pts []matrix.Matrix) bool {
 	if len(pts) < 2 {
 		return true
 	}
+	// zero-length line
 	if pts[0].Equals(pts[1]) {
 		return true
 	}

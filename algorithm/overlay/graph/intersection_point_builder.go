@@ -47,10 +47,6 @@ func (i *IntersectionPointBuilder) addResultPoints() {
 
 // isResultPoint Tests if a node is a result point. This is the case if the node
 // is incident on edges from both inputs, and none of the edges are themselves in the result.
-// Params:
-// 		nodeEdge – an edge originating at the node
-// Returns:
-//		true if this node is a result point
 func (i *IntersectionPointBuilder) isResultPoint(nodeEdge *OverlayEdge) bool {
 	isEdgeOfA := false
 	isEdgeOfB := false

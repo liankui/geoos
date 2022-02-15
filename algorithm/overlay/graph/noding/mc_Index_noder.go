@@ -15,7 +15,7 @@ import (
 type MCIndexNoder struct {
 	SinglePassNoder
 	monoChains       []*chain.MonotoneChain
-	index            index.SpatialIndex	// STRtree()
+	index            index.SpatialIndex // STRtree()
 	idCounter        int
 	nodedSegStrings  []matrix.LineMatrix
 	nOverlaps        int
@@ -24,14 +24,47 @@ type MCIndexNoder struct {
 
 // computeNodes ...
 func (m *MCIndexNoder) ComputeNodes(inputSegStrings interface{}) {
-	inputSS := inputSegStrings.([]matrix.LineMatrix)
+	fmt.Printf("====computeNodes2")
+	inputSS := inputSegStrings.([]matrix.LineMatrix)	// todo []*noding.NodedSegmentString
 	m.nodedSegStrings = inputSS
 	for i, _ := range inputSS {
 		m.add(inputSS[i])
 	}
+	m.intersectChains()
+}
 
-	// todo
-	//m.intersectChains
+// add ...
+func (m *MCIndexNoder) add(segStr matrix.LineMatrix) {
+	segChains := chain.Chains(segStr)
+	fmt.Printf("=====segChains:%v\n", segChains)
+	for _, mc := range segChains {
+		mc.ID = m.idCounter + 1
+		_ = m.index.Insert(mc.EnvelopeExpansion(m.overlapTolerance), mc)
+		m.monoChains = append(m.monoChains, mc)
+	}
+}
+
+// intersectChains...
+func (m *MCIndexNoder) intersectChains() {
+	overlapAction := chain.NewSegmentOverlapAction(m.segInt)
+	for _, queryChain := range m.monoChains {
+		queryEnv := queryChain.EnvelopeExpansion(m.overlapTolerance)
+		overlapChains := m.index.Query(queryEnv) // STRtree
+		for _, testChain := range overlapChains.([]*chain.MonotoneChain) {
+			/**
+			 * following test makes sure we only compare each pair of chains once
+			 * and that we don't compare a chain to itself
+			 */
+			if testChain.ID > queryChain.ID {
+				queryChain.ComputeOverlapsTolerance(testChain, m.overlapTolerance, overlapAction)
+				m.nOverlaps++
+			}
+			// short-circuit if possible
+			if m.segInt.IsDone() {
+				return
+			}
+		}
+	}
 }
 
 // getNodedSubstrings...
@@ -39,13 +72,3 @@ func (m *MCIndexNoder) GetNodedSubstrings() interface{} {
 	return nil
 }
 
-// add ...
-func (m *MCIndexNoder) add(InputEdge matrix.LineMatrix) {
-	segChains := chain.Chains(InputEdge)
-	fmt.Printf("=====segChains:%v\n", segChains)
-	for _, mc := range segChains {
-		mc.ID = m.idCounter + 1
-		//m.index
-		m.monoChains = append(m.monoChains, mc)
-	}
-}

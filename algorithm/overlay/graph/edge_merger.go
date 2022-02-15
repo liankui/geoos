@@ -1,5 +1,7 @@
 package graph
 
+import "log"
+
 // Performs merging on the noded edges of the input geometries. Merging takes place
 // on edges which are coincident (i.e. have the same coordinate list, modulo direction).
 // The following situations can occur:
@@ -32,7 +34,7 @@ func (e *EdgeMerger) merge(edges []*Edge) []*Edge {
 		} else {
 			// found an existing edge
 			if len(baseEdge.pts) != len(edge.pts) {
-				// todo Merge of edges of different sizes - probable noding error.
+				log.Printf("Merge of edges of different sizes - probable noding error.\n")
 			}
 			baseEdge.merge(edge) // 边缘的合并算法
 		}

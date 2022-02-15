@@ -38,12 +38,6 @@ func NewOverlayNG(geom0, geom1 space.Geometry, opCode int) *OverlayNG {
 //		For PrecisionModel.FIXED a snap-rounding noder is used, and the computation is robust.
 //		For PrecisionModel.FLOATING a non-snapping noder is used, and this computation
 //	  		may not be robust. If errors occur a TopologyException is thrown.
-// Params:
-//		geom0 – the first argument geometry
-//		geom1 – the second argument geometry
-// 		opCode – the code for the desired overlay operation
-// Returns:
-//		the result of the overlay operation
 func (o *OverlayNG) overlay(g0, g1 space.Geometry, opCode int) space.Geometry {
 	ov := NewOverlayNG(g0, g1, opCode)
 	return ov.getResult()

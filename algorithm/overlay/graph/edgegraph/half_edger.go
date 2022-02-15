@@ -1,9 +1,6 @@
 package edgegraph
 
 type HalfEdger interface {
-	//ToString() string
-	//DirectionPt() matrix.Matrix
-
 	Link(sym *HalfEdge)
 	ONext() *HalfEdge
 	Sym() *HalfEdge

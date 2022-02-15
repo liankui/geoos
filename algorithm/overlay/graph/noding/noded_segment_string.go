@@ -37,6 +37,7 @@ func (n *NodedSegmentString) getNodedSubstrings(segStrings interface{}) {
 
 }
 
+// todo
 func (n *NodedSegmentString) getNodedSubstrings2(segStrings, resultEdgelist interface{}) {
 
 }

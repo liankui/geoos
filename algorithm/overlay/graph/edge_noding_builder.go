@@ -14,6 +14,14 @@ const (
 	IS_NODING_VALIDATED = true
 )
 
+// Builds a set of noded, unique, labelled Edges from the edges of the two input geometries.
+// It performs the following steps:
+//		Extracts input edges, and attaches topological information
+//		if clipping is enabled, handles clipping or limiting input geometry
+//		chooses a Noder based on provided precision model, unless a custom one is supplied
+//		calls the chosen Noder, with precision model
+//		removes any fully collapsed noded edges
+//		builds Edges and merges them
 type EdgeNodingBuilder struct {
 	precisionModel *noding.PrecisionModel
 	inputEdges     []*noding.NodedSegmentString
@@ -51,6 +59,7 @@ func (e *EdgeNodingBuilder) createFloatingPrecisionNoder(doValidation bool) nodi
 	return noder
 }
 
+// setClipEnvelope...
 func (e *EdgeNodingBuilder) setClipEnvelope(clipEnv *envelope.Envelope) {
 	e.clipEnv = clipEnv
 	e.clipper = NewRingClipper(clipEnv)
@@ -58,8 +67,8 @@ func (e *EdgeNodingBuilder) setClipEnvelope(clipEnv *envelope.Envelope) {
 }
 
 // getNoder Gets a noder appropriate for the precision model supplied. This is one of:
-// Fixed precision: a snap-rounding noder (which should be fully robust)
-// Floating precision: a conventional nodel (which may be non-robust).
+// 		Fixed precision: a snap-rounding noder (which should be fully robust)
+// 		Floating precision: a conventional nodel (which may be non-robust).
 // In this case, a validation step is applied to the output from the noder.
 func (e *EdgeNodingBuilder) getNoder() noding.Noder {
 	if e.customNoder != nil {
@@ -107,12 +116,13 @@ func (e *EdgeNodingBuilder) node(segStrings []*noding.NodedSegmentString) []*Edg
 	return nodedEdges
 }
 
+// createEdges...
 func (e *EdgeNodingBuilder) createEdges(segStrings []noding.SegmentString) []*Edge {
 	edges := make([]*Edge, 0)
 	for _, ss := range segStrings {
 		pts := ss.GetCoordinates()
 		// don't create edges from collapsed lines
-		var edge *Edge
+		edge := new(Edge)
 		if edge.IsCollapsed(pts) {
 			continue
 		}

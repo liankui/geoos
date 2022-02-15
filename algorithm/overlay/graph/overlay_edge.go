@@ -40,7 +40,7 @@ func (o *OverlayEdge) getCoordinatesOriented() []matrix.Matrix {
 	return co
 }
 
-// reverse...
+// reverse Reverses the coordinates in an array in-place.
 func (o *OverlayEdge) reverse(coord []matrix.Matrix) []matrix.Matrix {
 	if len(coord) <= 1 {
 		return coord
@@ -84,8 +84,6 @@ func (o *OverlayEdge) createEdge(pts []matrix.Matrix, lbl *OverlayLabel, directi
 }
 
 // symOE Gets the symmetric pair edge of this edge.
-// Returns:
-//		the symmetric pair edge
 func (o *OverlayEdge) symOE() *OverlayEdge {
 	sym := edgegraph.HalfEdgerSym(o)
 	return sym.(*OverlayEdge)
@@ -93,8 +91,6 @@ func (o *OverlayEdge) symOE() *OverlayEdge {
 
 // oNextOE Gets the next edge CCW around the origin of this edge, with the same origin.
 // If the origin vertex has degree 1 then this is the edge itself.
-// Returns:
-//		the next edge around the origin
 func (o *OverlayEdge) oNextOE() *OverlayEdge {
 	oNext := edgegraph.HalfEdgerONext(o)
 	return oNext.(*OverlayEdge)

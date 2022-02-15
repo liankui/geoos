@@ -9,6 +9,7 @@ package noding
 // of an intersection. In the latter case, Noders may choose to
 // short-circuit their computation by calling the isDone() method.
 // This class is an example of the Strategy pattern.
+// todo chain.Intersector
 type SegmentIntersector interface {
 	// This method is called by clients of the SegmentIntersector
 	// interface to process intersections for two segments of the

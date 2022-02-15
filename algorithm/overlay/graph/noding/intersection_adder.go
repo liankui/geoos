@@ -9,16 +9,20 @@ type IntersectionAdder struct {
 	li                      *LineIntersector
 }
 
+// NewIntersectionAdder...
 func NewIntersectionAdder(li *LineIntersector) *IntersectionAdder {
 	return &IntersectionAdder{
 		li: li,
 	}
 }
 
-func (i *IntersectionAdder) processIntersections(e0, e1 SegmentString, segIndex0, segIndex1 int) {
-
+// processIntersections...
+func (i *IntersectionAdder) ProcessIntersections(
+	e0 matrix.LineMatrix, segIndex0 int,
+	e1 matrix.LineMatrix, segIndex1 int) {
 }
 
-func (i *IntersectionAdder) isDone() {
+// isDone...
+func (i *IntersectionAdder) IsDone() bool { return false }
 
-}
+func (i *IntersectionAdder) Result() interface{} { return nil }

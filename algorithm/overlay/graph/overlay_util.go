@@ -226,7 +226,7 @@ func (o *OverlayUtil) toLines(graph *OverlayGraph, isOutputEdges bool) space.Geo
 		}
 		var line space.LineString = tmp
 
-		//line.setUserData(labelForResult(edge) )
+		// todo line.setUserData(labelForResult(edge) )
 		lines = append(lines, line)
 	}
 

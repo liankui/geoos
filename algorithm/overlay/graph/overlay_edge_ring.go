@@ -97,7 +97,7 @@ func (o *OverlayEdgeRing) findEdgeRingContaining(erList []*OverlayEdgeRing) *Ove
 			continue
 		}
 
-		// todo
+		// todo ptNotInList
 		//testPt := ptNotInList(testRing.ToMatrix().Bound(), tryEdgeRing.ringPts)
 		//isContained := tryEdgeRing.isInRing(testPt)
 
