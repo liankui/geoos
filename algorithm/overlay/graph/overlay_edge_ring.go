@@ -80,13 +80,13 @@ func (o *OverlayEdgeRing) computeRing(ringPts []matrix.Matrix) {
 //		containing EdgeRing, if there is one or null if no containing EdgeRing is found
 func (o *OverlayEdgeRing) findEdgeRingContaining(erList []*OverlayEdgeRing) *OverlayEdgeRing {
 	testRing := o.ring
-	testEnv := testRing.GetEnvelopeInternal()
+	testEnv := testRing.ComputeEnvelopeInternal()
 
 	minRing := new(OverlayEdgeRing)
 	//minRingEnv := new(envelope.Envelope)
 	for _, tryEdgeRing := range erList {
 		tryRing := tryEdgeRing.ring
-		tryShellEnv := tryRing.GetEnvelopeInternal()
+		tryShellEnv := tryRing.ComputeEnvelopeInternal()
 		// the hole envelope cannot equal the shell envelope
 		// (also guards against testing rings against themselves)
 		if tryShellEnv.Equals(testEnv) {

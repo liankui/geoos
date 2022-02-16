@@ -3,6 +3,7 @@ package strtree
 import (
 	"fmt"
 	"github.com/spatial-go/geoos/index"
+	"github.com/spatial-go/geoos/space"
 	"testing"
 
 	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
@@ -57,7 +58,29 @@ func TestDisallowedInserts(t *testing.T) {
 }
 
 func TestQuery(t *testing.T) {
-	// todo
+	geometries := make([]space.LineString, 0)
+	geometries = append(geometries, space.LineString{{0, 0}, {10, 10}})
+	geometries = append(geometries, space.LineString{{20, 20}, {30, 30}})
+	geometries = append(geometries, space.LineString{{20, 20}, {30, 30}})
+
+	tree := NewSTRtree(4)
+	for _, g := range geometries {
+		fmt.Printf("g=%v\n", g)
+		fmt.Printf("g.ComputeEnvelopeInternal()=%v\n", g.ComputeEnvelopeInternal())
+		err := tree.Insert(g.ComputeEnvelopeInternal(), nil)
+		if err != nil {
+			fmt.Println("insert error=", err)
+		}
+	}
+	fmt.Printf("tree1=%#v\n", tree.AbstractSTRtree.Root)
+	tree.build()
+	fmt.Printf("tree2=%#v\n", tree.AbstractSTRtree.Root)
+
+	assert := assert.New(t)
+	assert.Equal(1, len(tree.Query(envelope.FourFloat(5, 6, 5, 6)).([]interface{})))
+	assert.Equal(0, len(tree.Query(envelope.FourFloat(20, 30, 0, 10)).([]interface{})))
+	assert.Equal(2, len(tree.Query(envelope.FourFloat(25, 26, 25, 26)).([]interface{})))
+	assert.Equal(3, len(tree.Query(envelope.FourFloat(0, 100, 0, 100)).([]interface{})))
 }
 
 func TestVerticalSlices(t *testing.T) {

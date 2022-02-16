@@ -84,7 +84,7 @@ type Geometry interface {
 	ComputeEnvelopeInternal() *envelope.Envelope
 
 	// Get internal envelop.
-	GetEnvelopeInternal() *envelope.Envelope
+	//GetEnvelopeInternal() *envelope.Envelope
 
 	// Equals returns true if the Geometry represents the same Geometry or vector.
 	Equals(g Geometry) bool

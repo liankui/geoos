@@ -197,15 +197,19 @@ func (mp MultiPoint) ComputeEnvelopeInternal() *envelope.Envelope {
 	return mp.expandEnvelope(envelope.Empty())
 }
 
-// GetEnvelopeInternal get multipoint internal envelop.
-func (mp MultiPoint) GetEnvelopeInternal() *envelope.Envelope {
-	return nil
-}
-
 // expandEnvelope LineString expend envelop.
 func (mp MultiPoint) expandEnvelope(env *envelope.Envelope) *envelope.Envelope {
-	return nil
+	matrices := mp.ToMatrix().Bound()
+	for _, m := range matrices {
+		env.ExpandToIncludeMatrix(m)
+	}
+	return env
 }
+
+// GetEnvelopeInternal get multipoint internal envelop.
+//func (mp MultiPoint) GetEnvelopeInternal() *envelope.Envelope {
+//	return nil
+//}
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry
 // that encloses all geometries in the input.

@@ -1,6 +1,7 @@
 package strtree
 
 import (
+	"fmt"
 	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"github.com/spatial-go/geoos/index"
 	"math"
@@ -11,7 +12,7 @@ type STRtree struct {
 	*AbstractSTRtree
 }
 
-// centreY
+// centreY...
 func centreX(e envelope.Envelope) float64 {
 	return avg(e.MinX, e.MaxX)
 }
@@ -91,6 +92,7 @@ func (s *STRtree) CreateNode(level int) *AbstractNode {
 
 // Insert Inserts an item having the given bounds into the tree.
 func (s *STRtree) Insert(bounds *envelope.Envelope, item interface{}) error {
+	fmt.Println("STRtree Insert")
 	if bounds.IsNil() {
 		return index.ErrSTRtreeBoundsIsNil
 	}
@@ -99,6 +101,7 @@ func (s *STRtree) Insert(bounds *envelope.Envelope, item interface{}) error {
 
 // Query Returns items whose bounds intersect the given envelope.
 func (s *STRtree) Query(searchBounds *envelope.Envelope) interface{} {
+	fmt.Printf("STRtree query begin0\n")
 	return s.query(searchBounds)
 }
 
@@ -108,11 +111,6 @@ func (s *STRtree) QueryVisitor(searchBounds *envelope.Envelope, visitor index.It
 }
 
 // Remove Removes a single item from the tree.
-// Params:
-//		itemEnv – the Envelope of the item to remove
-//		item – the item to remove
-// Returns:
-//		true if the item was found
 func (s *STRtree) Remove(searchBounds *envelope.Envelope, item interface{}) bool {
 	return s.remove(searchBounds, item)
 }

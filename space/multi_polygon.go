@@ -214,9 +214,9 @@ func (mp MultiPolygon) ComputeEnvelopeInternal() *envelope.Envelope {
 }
 
 // GetEnvelopeInternal get multiPolygon internal envelop.
-func (mp MultiPolygon) GetEnvelopeInternal() *envelope.Envelope {
-	return nil
-}
+//func (mp MultiPolygon) GetEnvelopeInternal() *envelope.Envelope {
+//	return nil
+//}
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry
 // that encloses all geometries in the input.

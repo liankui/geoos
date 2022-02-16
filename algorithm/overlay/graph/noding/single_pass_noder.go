@@ -1,18 +1,16 @@
 package noding
 
-import "github.com/spatial-go/geoos/algorithm/overlay/chain"
-
 // Base class for Noders which make a single pass to
 // find intersections. This allows using a custom
 // SegmentIntersector (which for instance may simply
 // identify intersections, rather than insert them).
 type SinglePassNoder struct {
 	Noder
-	segInt chain.Intersector
+	segInt SegmentIntersector
 }
 
 // setSinglePassNoder...
-func (s SinglePassNoder) SetSinglePassNoder(segInt chain.Intersector) *SinglePassNoder {
+func (s SinglePassNoder) SetSinglePassNoder(segInt SegmentIntersector) *SinglePassNoder {
 	return &SinglePassNoder{
 		segInt: segInt,
 	}

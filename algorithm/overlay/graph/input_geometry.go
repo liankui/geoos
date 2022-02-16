@@ -27,7 +27,7 @@ func (i *InputGeometry) getGeometry(geomIndex int) space.Geometry {
 
 // getEnvelope...
 func (i *InputGeometry) getEnvelope(geomIndex int) *envelope.Envelope {
-	return i.geom[geomIndex].GetEnvelopeInternal()
+	return i.geom[geomIndex].ComputeEnvelopeInternal()
 }
 
 // setCollapsed...

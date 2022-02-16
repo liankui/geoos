@@ -28,7 +28,7 @@ func (s *SegmentMutualIntersector) AddToMonoChains(segMatrix matrix.LineMatrix, 
 
 // IntersectChains ...
 func (s *SegmentMutualIntersector) IntersectChains(monoChains []*MonotoneChain, testChains []*MonotoneChain, segInt Intersector) {
-	overlapAction := &SegmentOverlapAction{MonotoneChainOverlapAction: &MonotoneChainOverlapAction{}, Si: segInt}
+	overlapAction := &SegmentOverlapAction{MonotoneChainOverlapAction: &MonotoneChainOverlapAction{}, si: segInt}
 
 	for _, queryChain := range monoChains {
 		for _, testChain := range testChains {
@@ -43,19 +43,12 @@ func (s *SegmentMutualIntersector) IntersectChains(monoChains []*MonotoneChain, 
 // SegmentOverlapAction implement OverlapAction.
 type SegmentOverlapAction struct {
 	*MonotoneChainOverlapAction
-	Si Intersector
-}
-
-// NewSegmentOverlapAction...
-func NewSegmentOverlapAction(si Intersector) *SegmentOverlapAction {
-	return &SegmentOverlapAction{
-		Si: si,
-	}
+	si Intersector
 }
 
 // Overlap This function can be overridden if the original chains are needed.
 func (s *SegmentOverlapAction) Overlap(mc1 *MonotoneChain, start1 int, mc2 *MonotoneChain, start2 int) {
 	ss1 := mc1.Edge
 	ss2 := mc2.Edge
-	s.Si.ProcessIntersections(ss1, start1, ss2, start2)
+	s.si.ProcessIntersections(ss1, start1, ss2, start2)
 }

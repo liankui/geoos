@@ -203,9 +203,9 @@ func (p Point) ComputeEnvelopeInternal() *envelope.Envelope {
 }
 
 // GetEnvelopeInternal get point internal envelop.
-func (p Point) GetEnvelopeInternal() *envelope.Envelope {
-	return nil
-}
+//func (p Point) GetEnvelopeInternal() *envelope.Envelope {
+//	return nil
+//}
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry
 // that encloses all geometries in the input.

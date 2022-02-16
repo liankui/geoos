@@ -100,9 +100,9 @@ func (c *Circle) ComputeEnvelopeInternal() *envelope.Envelope {
 }
 
 // GetEnvelopeInternal get circle internal envelop.
-func (c *Circle) GetEnvelopeInternal() *envelope.Envelope {
-	return nil
-}
+//func (c *Circle) GetEnvelopeInternal() *envelope.Envelope {
+//	return nil
+//}
 
 // IsClosed Returns TRUE if the LINESTRING's start and end points are coincident.
 // For Polyhedral Surfaces, reports if the surface is areal (open) or IsC (closed).

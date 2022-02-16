@@ -238,9 +238,9 @@ func (mls MultiLineString) ComputeEnvelopeInternal() *envelope.Envelope {
 }
 
 // GetEnvelopeInternal get multiLineString internal envelop.
-func (mls MultiLineString) GetEnvelopeInternal() *envelope.Envelope {
-	return nil
-}
+//func (mls MultiLineString) GetEnvelopeInternal() *envelope.Envelope {
+//	return nil
+//}
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry
 // that encloses all geometries in the input.

@@ -17,12 +17,11 @@ func NewIntersectionAdder(li *LineIntersector) *IntersectionAdder {
 }
 
 // processIntersections...
-func (i *IntersectionAdder) ProcessIntersections(
-	e0 matrix.LineMatrix, segIndex0 int,
-	e1 matrix.LineMatrix, segIndex1 int) {
+func (i *IntersectionAdder) processIntersections(e0, e1 SegmentString, segIndex0, segIndex1 int) {
+
 }
 
 // isDone...
-func (i *IntersectionAdder) IsDone() bool { return false }
-
-func (i *IntersectionAdder) Result() interface{} { return nil }
+func (i *IntersectionAdder) isDone() bool {
+	return false
+}

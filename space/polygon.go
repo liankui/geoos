@@ -264,13 +264,13 @@ func (p Polygon) Envelope() Geometry {
 
 // ComputeEnvelopeInternal...
 func (p Polygon) ComputeEnvelopeInternal() *envelope.Envelope {
-	return p.Shell().GetEnvelopeInternal()
+	return p.Shell().ComputeEnvelopeInternal()
 }
 
 // GetEnvelopeInternal get polygon internal envelop.
-func (p Polygon) GetEnvelopeInternal() *envelope.Envelope {
-	return nil
-}
+//func (p Polygon) GetEnvelopeInternal() *envelope.Envelope {
+//	return nil
+//}
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry
 // that encloses all geometries in the input.

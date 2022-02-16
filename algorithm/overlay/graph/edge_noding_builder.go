@@ -48,8 +48,8 @@ func (e *EdgeNodingBuilder) createFixedPrecisionNoder(precisionModel *noding.Pre
 
 // createFloatingPrecisionNoder...
 func (e *EdgeNodingBuilder) createFloatingPrecisionNoder(doValidation bool) noding.Noder {
-	mcNoder := new(noding.MCIndexNoder)
-	li := new(noding.LineIntersector)
+	mcNoder := noding.NewMCIndexNoder()
+	li := new(noding.LineIntersector)	// todo 待优化
 	mcNoder.SetSinglePassNoder(noding.NewIntersectionAdder(li))
 
 	var noder noding.Noder = mcNoder
@@ -164,7 +164,7 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 		return
 	}
 
-	if e.isClippedCompletely(ring.GetEnvelopeInternal()) {
+	if e.isClippedCompletely(ring.ComputeEnvelopeInternal()) {
 		return
 	}
 
@@ -191,7 +191,7 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 //		the points in the clipped line
 func (e *EdgeNodingBuilder) clip(ring space.Ring) []matrix.Matrix {
 	pts := ring.ToMatrix().Bound()
-	env := ring.GetEnvelopeInternal()
+	env := ring.ComputeEnvelopeInternal()
 
 	/**
 	 * If no clipper or ring is completely contained then no need to clip.

@@ -258,19 +258,19 @@ func (c Collection) Envelope() Geometry {
 func (c Collection) ComputeEnvelopeInternal() *envelope.Envelope {
 	env := envelope.Empty()
 	for _, geometry := range c {
-		env.ExpandToIncludeEnv(geometry.GetEnvelopeInternal())
+		env.ExpandToIncludeEnv(geometry.ComputeEnvelopeInternal())
 	}
 	return env
 }
 
 // GetEnvelopeInternal get collection internal envelop.
-func (c Collection) GetEnvelopeInternal() *envelope.Envelope {
-	matrices := c.ToMatrix().Bound()
-	if matrices == nil || len(matrices) == 0 {
-		return c.ComputeEnvelopeInternal()
-	}
-	return envelope.Empty()
-}
+//func (c Collection) GetEnvelopeInternal() *envelope.Envelope {
+//	matrices := c.ToMatrix().Bound()
+//	if matrices == nil || len(matrices) == 0 {
+//		return c.ComputeEnvelopeInternal()
+//	}
+//	return envelope.Empty()
+//}
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry
 // that encloses all geometries in the input.

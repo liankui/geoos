@@ -1,17 +1,13 @@
 package strtree
 
 import (
+	"fmt"
 	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"github.com/spatial-go/geoos/index"
 	"sort"
 )
 
 const DEFAULT_NODE_CAPACITY = 10
-
-var (
-	itemBoundables []Boundable
-	built          bool
-)
 
 // A query-only R-tree created using the Sort-Tile-Recursive (STR) algorithm.
 // For two-dimensional spatial data. The STR packed R-tree is simple to implement
@@ -21,29 +17,31 @@ var (
 // automatically upon the first query), items may not be added.
 // Items may be removed from the tree using remove(Envelope, Object).
 type AbstractSTRtree struct {
-	Root         *AbstractNode `json:"root"`
-	NodeCapacity int           `json:"node_capacity"`
+	Root           *AbstractNode
+	NodeCapacity   int
+	itemBoundables []Boundable
+	built          bool
 }
 
 // getItemBoundables...
 func (s *AbstractSTRtree) getItemBoundables() []Boundable {
-	return itemBoundables
+	return s.itemBoundables
 }
 
 // build Creates parent nodes, grandparent nodes, and so forth up to the root node,
 // for the data that has been inserted into the tree. Can only be called once,
 // and thus can be called only after all of the data has been inserted into the tree.
 func (s *AbstractSTRtree) build() {
-	if built {
+	if s.built {
 		return
 	}
-	if len(itemBoundables) == 0 {
+	if len(s.itemBoundables) == 0 {
 		s.Root = s.createNode(0)
 	} else {
-		s.Root = s.createHigherLevels(itemBoundables, -1)
+		s.Root = s.createHigherLevels(s.itemBoundables, -1)
 	}
-	itemBoundables = nil
-	built = true
+	s.itemBoundables = nil
+	s.built = true
 }
 
 // createNode Create a node.
@@ -107,18 +105,20 @@ func (s *AbstractSTRtree) getRoot() *AbstractNode {
 
 // isEmpty ...
 func (s *AbstractSTRtree) isEmpty() bool {
-	if !built {
-		return len(itemBoundables) == 0
+	if !s.built {
+		return len(s.itemBoundables) == 0
 	}
 	return len(s.Root.ChildBoundables) == 0
 }
 
 // Insert ...
 func (s *AbstractSTRtree) insert(bounds *envelope.Envelope, item interface{}) error {
-	if built {
+	fmt.Println("s.built=", s.built)
+	if s.built {
+		fmt.Println("s.built= true")
 		return index.ErrSTRtreeInsert
 	}
-	itemBoundables = append(itemBoundables, &ItemBoundable{Bounds: bounds, Item: item})
+	s.itemBoundables = append(s.itemBoundables, &ItemBoundable{Bounds: bounds, Item: item})
 	return nil
 }
 
@@ -127,10 +127,13 @@ func (s *AbstractSTRtree) query(searchBounds *envelope.Envelope) interface{} {
 	s.build()
 	matches := make([]interface{}, 0)
 	if s.isEmpty() {
+		fmt.Println("s.isEmpty")
 		return matches
 	}
 	if intersects(s.Root.getBounds(), searchBounds) {
-		_ = s.queryInternal(searchBounds, s.Root, matches)
+		fmt.Printf("----intersects, matches=%#v\n", matches)
+		matches, _ = s.queryInternal(searchBounds, s.Root, matches)
+		fmt.Printf("----intersects, matches2=%#v\n", matches)
 	}
 	return matches
 }
@@ -148,7 +151,7 @@ func (s *AbstractSTRtree) queryVisitor(searchBounds *envelope.Envelope, visitor 
 }
 
 // queryInternal ...
-func (s *AbstractSTRtree) queryInternal(searchBounds *envelope.Envelope, node *AbstractNode, matches []interface{}) error {
+func (s *AbstractSTRtree) queryInternal(searchBounds *envelope.Envelope, node *AbstractNode, matches []interface{}) ([]interface{}, error) {
 	childBoundables := node.ChildBoundables
 	for _, childBoundable := range childBoundables {
 		if !intersects(childBoundable.getBounds(), searchBounds) {
@@ -156,14 +159,14 @@ func (s *AbstractSTRtree) queryInternal(searchBounds *envelope.Envelope, node *A
 		}
 		switch childBoundable.(type) {
 		case *AbstractNode:
-			return s.queryInternal(searchBounds, childBoundable.(*AbstractNode), matches)
+			matches, _ = s.queryInternal(searchBounds, childBoundable.(*AbstractNode), matches)
 		case *ItemBoundable:
 			matches = append(matches, childBoundable.(*ItemBoundable).getItem())
 		default:
-			return index.ErrSTRtreeNeverReach
+			return nil, index.ErrSTRtreeNeverReach
 		}
 	}
-	return nil
+	return matches, nil
 }
 
 // queryVisitorInternal ...

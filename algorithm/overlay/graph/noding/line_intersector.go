@@ -22,7 +22,7 @@ func (l *LineIntersector) processIntersections(e0, e1 SegmentString, segIndex0, 
 
 }
 
-func (l *LineIntersector) isDone() {
-
+func (l *LineIntersector) isDone() bool {
+	return false
 }
 

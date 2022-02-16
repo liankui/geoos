@@ -1,6 +1,7 @@
 package space
 
 import (
+	"fmt"
 	"github.com/spatial-go/geoos/algorithm/buffer"
 	"github.com/spatial-go/geoos/algorithm/buffer/simplify"
 	"github.com/spatial-go/geoos/algorithm/matrix"
@@ -229,19 +230,25 @@ func (ls LineString) ComputeEnvelopeInternal() *envelope.Envelope {
 	return ls.expandEnvelope(envelope.Empty())
 }
 
-// GetEnvelopeInternal get lineString internal envelop.
-func (ls LineString) GetEnvelopeInternal() *envelope.Envelope {
-	return nil
-}
-
 // expandEnvelope LineString expend envelop.
 func (ls LineString) expandEnvelope(env *envelope.Envelope) *envelope.Envelope {
+	fmt.Println("LineString expandEnvelope")
 	matrices := ls.ToMatrix().Bound()
 	for _, m := range matrices {
 		env.ExpandToIncludeMatrix(m)
 	}
 	return env
 }
+
+//// GetEnvelopeInternal get lineString internal envelop.
+//func (ls LineString) GetEnvelopeInternal() *envelope.Envelope {
+//	env := envelope.Bound(ls.ToMatrix().Bound())
+//	fmt.Println("LineString GetEnvelopeInternal=", env)
+//	if env == nil {
+//		return ls.ComputeEnvelopeInternal()
+//	}
+//	return envelope.Env(env)
+//}
 
 // ConvexHull computes the convex hull of a geometry. The convex hull is the smallest convex geometry
 // that encloses all geometries in the input.
