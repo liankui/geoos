@@ -36,7 +36,7 @@ func (e *EdgeMerger) merge(edges []*Edge) []*Edge {
 			if len(baseEdge.pts) != len(edge.pts) {
 				log.Printf("Merge of edges of different sizes - probable noding error.\n")
 			}
-			baseEdge.merge(edge) // 边缘的合并算法
+			baseEdge.merge(edge)
 		}
 	}
 	return mergedEdges

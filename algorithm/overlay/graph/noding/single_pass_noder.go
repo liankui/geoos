@@ -10,10 +10,8 @@ type SinglePassNoder struct {
 }
 
 // setSinglePassNoder...
-func (s SinglePassNoder) SetSinglePassNoder(segInt SegmentIntersector) *SinglePassNoder {
-	return &SinglePassNoder{
-		segInt: segInt,
-	}
+func (s *SinglePassNoder) SetSinglePassNoder(segInt SegmentIntersector) {
+	s.segInt= segInt
 }
 
 // computeNodes Computes the noding for a collection of SegmentStrings.

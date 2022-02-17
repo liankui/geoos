@@ -34,21 +34,19 @@ func (a *AbstractNode) getBounds() *envelope.Envelope {
 //		an Interval (for SIRtrees),
 //		or other object (for other subclasses of AbstractSTRtree)
 func (a *AbstractNode) computeBounds() *envelope.Envelope {
-	var bounds envelope.Envelope
+	bounds := new(envelope.Envelope)
 	for _, childBoundable := range a.ChildBoundables {
 		if bounds.IsNil() {
-			bounds = *childBoundable.getBounds()
+			bounds = childBoundable.getBounds()
 		} else {
 			bounds.ExpandToIncludeEnv(childBoundable.getBounds())
 		}
 	}
-	return &bounds
+	return bounds
 }
 
 // addChildBoundable Adds either an AbstractNode, or if this is a leaf node,
 // a data object (wrapped in an ItemBoundable)
-// Params:
-//		childBoundable – the child to add
 func (a *AbstractNode) addChildBoundable(childBoundable Boundable) {
 	if childBoundable.getBounds().IsNil() {
 		return

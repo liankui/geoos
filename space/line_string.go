@@ -1,7 +1,6 @@
 package space
 
 import (
-	"fmt"
 	"github.com/spatial-go/geoos/algorithm/buffer"
 	"github.com/spatial-go/geoos/algorithm/buffer/simplify"
 	"github.com/spatial-go/geoos/algorithm/matrix"
@@ -232,7 +231,6 @@ func (ls LineString) ComputeEnvelopeInternal() *envelope.Envelope {
 
 // expandEnvelope LineString expend envelop.
 func (ls LineString) expandEnvelope(env *envelope.Envelope) *envelope.Envelope {
-	fmt.Println("LineString expandEnvelope")
 	matrices := ls.ToMatrix().Bound()
 	for _, m := range matrices {
 		env.ExpandToIncludeMatrix(m)

@@ -13,23 +13,18 @@ type STRtree struct {
 }
 
 // centreY...
-func centreX(e envelope.Envelope) float64 {
+func centreX(e *envelope.Envelope) float64 {
 	return avg(e.MinX, e.MaxX)
 }
 
 // centreY...
-func centreY(e envelope.Envelope) float64 {
+func centreY(e *envelope.Envelope) float64 {
 	return avg(e.MinY, e.MaxY)
 }
 
 // avg...
 func avg(a, b float64) float64 {
 	return (a + b) / 2.0
-}
-
-// intersects...
-func intersects(a, b *envelope.Envelope) bool {
-	return a.IsIntersects(b)
 }
 
 // CreateParentBoundables Creates the parent level for the given child level.
@@ -45,7 +40,7 @@ func (s *STRtree) CreateParentBoundables(childBoundables []Boundable, newLevel i
 	sortedChildBoundables := childBoundables
 	// Sort from largest to smallest based on the averages of MaxX and MinX.
 	sort.Slice(sortedChildBoundables, func(i, j int) bool {
-		return centreX(*sortedChildBoundables[i].getBounds()) > centreX(*sortedChildBoundables[j].getBounds())
+		return centreX(sortedChildBoundables[i].getBounds()) > centreX(sortedChildBoundables[j].getBounds())
 	})
 	verticalSlices := s.verticalSlices(sortedChildBoundables, int(math.Ceil(math.Sqrt(float64(minLeafCount)))))
 	return s.createParentBoundablesFromVerticalSlices(verticalSlices, newLevel)
@@ -72,7 +67,7 @@ func (s *STRtree) createParentBoundablesFromVerticalSlices(verticalSlices [][]Bo
 	if len(verticalSlices) == 0 {
 		return nil
 	}
-	var parentBoundables []Boundable
+	parentBoundables := make([]Boundable, 0)
 	for i := 0; i < len(verticalSlices); i++ {
 		parentBoundables = append(parentBoundables,
 			s.createParentBoundablesFromVerticalSlice(verticalSlices[i], newLevel)...)
@@ -101,7 +96,7 @@ func (s *STRtree) Insert(bounds *envelope.Envelope, item interface{}) error {
 
 // Query Returns items whose bounds intersect the given envelope.
 func (s *STRtree) Query(searchBounds *envelope.Envelope) interface{} {
-	fmt.Printf("STRtree query begin0\n")
+	fmt.Printf("-------STRtree query begin0\n")
 	return s.query(searchBounds)
 }
 

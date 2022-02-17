@@ -3,6 +3,7 @@ package graph
 import (
 	"fmt"
 	"github.com/spatial-go/geoos/encoding/wkt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -15,4 +16,6 @@ func TestUnion(t *testing.T) {
 	var ol GeometryOverlay
 	result := ol.union(a, b)
 	fmt.Printf("[result]=%+v\n", result)
+	want, _ := wkt.UnmarshalString("POLYGON ((10 0, 0 0, 0 10, 5 10, 5 15, 15 15, 15 5, 10 5, 10 0))")
+	assert.Equal(t, result, want)
 }

@@ -83,6 +83,21 @@ func TestQuery(t *testing.T) {
 	assert.Equal(3, len(tree.Query(envelope.FourFloat(0, 100, 0, 100)).([]interface{})))
 }
 
+func TestQuery2(t *testing.T) {
+	tree := NewDefaultSTRtree()
+	tree.Insert(&envelope.Envelope{MaxX: 10, MinX: 0, MaxY: 10, MinY: 0}, "1")
+	tree.Insert(&envelope.Envelope{MaxX: 15, MinX: 5, MaxY: 15, MinY: 5}, "2")
+
+	//tree.build()
+	for _, boundable := range tree.AbstractSTRtree.Root.ChildBoundables {
+		fmt.Printf("====computeNodes3 boundable=%#v\n", boundable.(*ItemBoundable).Bounds)
+	}
+	fmt.Printf("tree2=%#v\n", tree.AbstractSTRtree.Root)
+
+	query := tree.Query(&envelope.Envelope{MaxX: 10, MinX: 0, MaxY: 10, MinY: 0})
+	assert.Equal(t, []interface{}{"2", "1"}, query)
+}
+
 func TestVerticalSlices(t *testing.T) {
 	doTestVerticalSlices(t, 3, 2, 2, 1)
 	doTestVerticalSlices(t, 4, 2, 2, 2)
@@ -96,7 +111,9 @@ func TestRemove(t *testing.T) {
 	tree.Insert(&envelope.Envelope{MaxX: 20, MinX: 10, MaxY: 20, MinY: 10}, "3")
 	tree.Insert(&envelope.Envelope{MaxX: 25, MinX: 15, MaxY: 25, MinY: 15}, "4")
 	tree.remove(&envelope.Envelope{MaxX: 20, MinX: 10, MaxY: 20, MinY: 10}, "4")
-	fmt.Printf("----tree:%+v\n", tree.AbstractSTRtree.Root)
+	for _, boundable := range tree.AbstractSTRtree.Root.ChildBoundables {
+		fmt.Printf("----boundable:%v___", boundable)
+	}
 	assert.Equal(t, 3, tree.Size())
 }
 
@@ -129,7 +146,7 @@ func doTestVerticalSlices(t *testing.T, itemCount, sliceCount,
 
 func itemWrappers(size int) (itemWrappers []Boundable) {
 	for i := 0; i < size; i++ {
-		itemWrappers = append(itemWrappers, &ItemBoundable{&envelope.Envelope{0, 0, 0, 0}, nil})
+		itemWrappers = append(itemWrappers, &ItemBoundable{Bounds: &envelope.Envelope{0, 0, 0, 0}, Item: nil})
 	}
 	return
 }

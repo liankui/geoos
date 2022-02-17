@@ -18,13 +18,13 @@ const DEFAULT_NODE_CAPACITY = 10
 // Items may be removed from the tree using remove(Envelope, Object).
 type AbstractSTRtree struct {
 	Root           *AbstractNode
-	NodeCapacity   int
+	NodeCapacity   int // default=DEFAULT_NODE_CAPACITY
 	itemBoundables []Boundable
 	built          bool
 }
 
 // getItemBoundables...
-func (s *AbstractSTRtree) getItemBoundables() []Boundable {
+func (s *AbstractSTRtree) GetItemBoundables() []Boundable {
 	return s.itemBoundables
 }
 
@@ -46,9 +46,7 @@ func (s *AbstractSTRtree) build() {
 
 // createNode Create a node.
 func (s *AbstractSTRtree) createNode(level int) *AbstractNode {
-	abstractNode := &AbstractNode{Level: level}
-	//abstractNode.Bounds = s.getBounds()
-	return abstractNode
+	return &AbstractNode{Level: level}
 }
 
 // getBounds Gets the bounds of this node.
@@ -66,10 +64,12 @@ func (s *AbstractSTRtree) getBounds() *envelope.Envelope {
 // Returns:
 // 		the root, which may be a ParentNode or a LeafNode.
 func (s *AbstractSTRtree) createHigherLevels(boundablesOfALevel []Boundable, level int) *AbstractNode {
+	fmt.Printf("==createHigherLevels level=%v\n", level)
 	if len(boundablesOfALevel) == 0 {
 		return nil
 	}
 	parentBoundables := s.createParentBoundables(boundablesOfALevel, level+1)
+	fmt.Printf("==len=%v\n", len(parentBoundables))
 	if len(parentBoundables) == 1 {
 		return (parentBoundables[0]).(*AbstractNode)
 	}
@@ -81,20 +81,25 @@ func (s *AbstractSTRtree) createParentBoundables(childBoundables []Boundable, ne
 	if len(childBoundables) == 0 {
 		return nil
 	}
-	var parentBoundablesNode []Boundable
-	parentBoundablesNode = append(parentBoundablesNode, s.createNode(newLevel))
-	sortedChildBoundables := childBoundables
+	parentBoundables := make([]Boundable, 0)
+	parentBoundables = append(parentBoundables, s.createNode(newLevel))
+
+	sortedChildBoundables := make([]Boundable, len(childBoundables))
+	copy(sortedChildBoundables, childBoundables)
+
 	// Sort from largest to smallest based on the averages of MaxY and MinY.
 	sort.Slice(sortedChildBoundables, func(i, j int) bool {
-		return centreY(*sortedChildBoundables[i].getBounds()) > centreY(*sortedChildBoundables[j].getBounds())
+		return centreY(childBoundables[i].getBounds()) > centreY(childBoundables[j].getBounds())
 	})
+	fmt.Println("===len(sortedChildBoundables)=", len(sortedChildBoundables))	// todo 数量不对
+
 	for _, childBoundable := range sortedChildBoundables {
-		if len(parentBoundablesNode[len(parentBoundablesNode)-1].(*AbstractNode).ChildBoundables) == s.NodeCapacity {
-			parentBoundablesNode = append(parentBoundablesNode, s.createNode(newLevel))
+		if len(parentBoundables[len(parentBoundables)-1].(*AbstractNode).ChildBoundables) == s.NodeCapacity {
+			parentBoundables = append(parentBoundables, s.createNode(newLevel))
 		}
-		parentBoundablesNode[len(parentBoundablesNode)-1].(*AbstractNode).addChildBoundable(childBoundable)
+		parentBoundables[len(parentBoundables)-1].(*AbstractNode).addChildBoundable(childBoundable)
 	}
-	return parentBoundablesNode
+	return parentBoundables
 }
 
 // getRoot Gets the root node of the tree.
@@ -113,12 +118,11 @@ func (s *AbstractSTRtree) isEmpty() bool {
 
 // Insert ...
 func (s *AbstractSTRtree) insert(bounds *envelope.Envelope, item interface{}) error {
-	fmt.Println("s.built=", s.built)
 	if s.built {
-		fmt.Println("s.built= true")
 		return index.ErrSTRtreeInsert
 	}
 	s.itemBoundables = append(s.itemBoundables, &ItemBoundable{Bounds: bounds, Item: item})
+	fmt.Printf("insert s.itemBoundables=%#v\n", s.itemBoundables)
 	return nil
 }
 
@@ -130,8 +134,7 @@ func (s *AbstractSTRtree) query(searchBounds *envelope.Envelope) interface{} {
 		fmt.Println("s.isEmpty")
 		return matches
 	}
-	if intersects(s.Root.getBounds(), searchBounds) {
-		fmt.Printf("----intersects, matches=%#v\n", matches)
+	if s.Root.getBounds().IsIntersects(searchBounds) {
 		matches, _ = s.queryInternal(searchBounds, s.Root, matches)
 		fmt.Printf("----intersects, matches2=%#v\n", matches)
 	}
@@ -144,7 +147,7 @@ func (s *AbstractSTRtree) queryVisitor(searchBounds *envelope.Envelope, visitor 
 	if s.isEmpty() {
 		return index.ErrSTRtreeIsEmpty
 	}
-	if intersects(s.Root.getBounds(), searchBounds) {
+	if s.Root.getBounds().IsIntersects(searchBounds) {
 		return s.queryVisitorInternal(searchBounds, s.Root, visitor)
 	}
 	return nil
@@ -152,9 +155,10 @@ func (s *AbstractSTRtree) queryVisitor(searchBounds *envelope.Envelope, visitor 
 
 // queryInternal ...
 func (s *AbstractSTRtree) queryInternal(searchBounds *envelope.Envelope, node *AbstractNode, matches []interface{}) ([]interface{}, error) {
+	fmt.Println("------queryInternal")
 	childBoundables := node.ChildBoundables
 	for _, childBoundable := range childBoundables {
-		if !intersects(childBoundable.getBounds(), searchBounds) {
+		if !childBoundable.getBounds().IsIntersects(searchBounds) {
 			continue
 		}
 		switch childBoundable.(type) {
@@ -173,7 +177,7 @@ func (s *AbstractSTRtree) queryInternal(searchBounds *envelope.Envelope, node *A
 func (s *AbstractSTRtree) queryVisitorInternal(searchBounds *envelope.Envelope, node *AbstractNode, visitor index.ItemVisitor) error {
 	childBoundables := node.ChildBoundables
 	for _, childBoundable := range childBoundables {
-		if !intersects(childBoundable.getBounds(), searchBounds) {
+		if !childBoundable.getBounds().IsIntersects(searchBounds) {
 			continue
 		}
 		switch childBoundable.(type) {
@@ -191,7 +195,7 @@ func (s *AbstractSTRtree) queryVisitorInternal(searchBounds *envelope.Envelope, 
 // remove Removes an item from the tree. (Builds the tree, if necessary.)
 func (s *AbstractSTRtree) remove(searchBounds *envelope.Envelope, item interface{}) bool {
 	s.build()
-	if intersects(s.Root.getBounds(), searchBounds) {
+	if s.Root.getBounds().IsIntersects(searchBounds) {
 		return s.removeNode(searchBounds, s.Root, item)
 	}
 	return false
@@ -223,7 +227,7 @@ func (s *AbstractSTRtree) removeNode(searchBounds *envelope.Envelope, node *Abst
 	var childToPrune *AbstractNode
 	for i := len(node.ChildBoundables) - 1; i >= 0; i-- {
 		childBoundable := node.ChildBoundables[i]
-		if !intersects(childBoundable.getBounds(), searchBounds) {
+		if !childBoundable.getBounds().IsIntersects(searchBounds) {
 			continue
 		}
 		switch childBoundable.(type) {

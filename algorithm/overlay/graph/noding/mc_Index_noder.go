@@ -25,7 +25,10 @@ type MCIndexNoder struct {
 // NewMCIndexNoder...
 func NewMCIndexNoder() *MCIndexNoder {
 	return &MCIndexNoder{
-		index: &strtree.STRtree{AbstractSTRtree: new(strtree.AbstractSTRtree)},
+		index: &strtree.STRtree{
+			AbstractSTRtree: &strtree.AbstractSTRtree{
+				NodeCapacity: strtree.DEFAULT_NODE_CAPACITY,
+			}},
 	}
 }
 
@@ -37,7 +40,6 @@ func (m *MCIndexNoder) ComputeNodes(inputSegStrings interface{}) {
 	for i, _ := range inputSS {
 		m.add(inputSS[i])
 	}
-	fmt.Printf("====computeNodes3 m.index=%#v\n", m.index)
 	m.intersectChains()
 	fmt.Printf("====computeNodes4")
 }
@@ -53,9 +55,7 @@ func (m *MCIndexNoder) add(segStr *NodedSegmentString) {
 	for _, mc := range segChains {
 		mc.ID = m.idCounter + 1
 		expansion := mc.EnvelopeExpansion(m.overlapTolerance)
-		fmt.Println("---expansion", expansion)
-		err := m.index.Insert(expansion, mc)
-		fmt.Println("m.index.Insert err=", err)
+		_ = m.index.Insert(expansion, mc)
 		m.monoChains = append(m.monoChains, mc)
 	}
 }
@@ -64,20 +64,18 @@ func (m *MCIndexNoder) add(segStr *NodedSegmentString) {
 func (m *MCIndexNoder) intersectChains() {
 	overlapAction := NewSegmentOverlapAction(m.segInt)
 	for _, queryChain := range m.monoChains {
-		fmt.Printf("intersectChains1,queryChain=%+v\n", queryChain)
 		queryEnv := queryChain.EnvelopeExpansion(m.overlapTolerance)
 		fmt.Printf("intersectChains1,queryEnv=%+v\n", queryEnv)
-		fmt.Printf("intersectChains1,m.index=%T\n", m.index)
 		overlapChains := m.index.Query(queryEnv) // STRtree
-		fmt.Printf("intersectChains2")
-		for _, testChain := range overlapChains.([]*chain.MonotoneChain) {
+		fmt.Printf("000 overlapChains:%#v\n", overlapChains)
+		for _, testChain := range overlapChains.([]interface{}) {
 			fmt.Printf("intersectChains3")
 			/**
 			 * following test makes sure we only compare each pair of chains once
 			 * and that we don't compare a chain to itself
 			 */
-			if testChain.ID > queryChain.ID {
-				queryChain.ComputeOverlapsTolerance(testChain, m.overlapTolerance, overlapAction)
+			if testChain.(*chain.MonotoneChain).ID > queryChain.ID {
+				queryChain.ComputeOverlapsTolerance(testChain.(*chain.MonotoneChain), m.overlapTolerance, overlapAction)
 				m.nOverlaps++
 			}
 			// short-circuit if possible
@@ -105,4 +103,3 @@ func NewSegmentOverlapAction(si SegmentIntersector) *SegmentOverlapAction {
 		si: si,
 	}
 }
-
