@@ -21,7 +21,9 @@ func NewMaximalEdgeRing(e *OverlayEdge) *MaximalEdgeRing {
 // attachEdges...
 func (m *MaximalEdgeRing) attachEdges(startEdge *OverlayEdge) {
 	edge := startEdge
-	for edge != startEdge {
+	_tk := true
+	for _tk || edge != startEdge {
+		_tk = false
 		if edge == nil {
 			log.Printf("Ring edge is null\n")
 			return
@@ -69,7 +71,9 @@ func (m *MaximalEdgeRing) linkResultAreaMaxRingAtNode(nodeEdge *OverlayEdge) {
 	currOut := endOut
 	state := STATE_FIND_INCOMING
 	currResultIn := new(OverlayEdge)
-	for currOut != endOut {
+	_tk := true
+	for _tk || currOut != endOut {
+		_tk = false
 		/**
 		 * If an edge is linked this node has already been processed
 		 * so can skip further processing
@@ -108,7 +112,9 @@ func (m *MaximalEdgeRing) buildMinimalRings() []*OverlayEdgeRing {
 	m.linkMinimalRings()
 	minEdgeRings := make([]*OverlayEdgeRing, 0)
 	e := m.startEdge
-	for e != m.startEdge {
+	_tk := true
+	for _tk || e != m.startEdge {
+		_tk = false
 		if e.edgeRing == nil {
 			minEr := NewOverlayEdgeRing(e)
 			minEdgeRings = append(minEdgeRings, minEr)
@@ -121,7 +127,9 @@ func (m *MaximalEdgeRing) buildMinimalRings() []*OverlayEdgeRing {
 // linkMinimalRings...
 func (m *MaximalEdgeRing) linkMinimalRings() {
 	e := m.startEdge
-	for e != m.startEdge {
+	_tk := true
+	for _tk || e != m.startEdge {
+		_tk = false
 		m.linkMinRingEdgesAtNode(e, m)
 		e = e.nextResultMaxEdge
 	}

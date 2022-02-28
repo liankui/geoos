@@ -52,7 +52,9 @@ func (i *IntersectionPointBuilder) isResultPoint(nodeEdge *OverlayEdge) bool {
 	isEdgeOfB := false
 
 	edge := nodeEdge
-	for edge != nodeEdge {
+	_tk := true
+	for _tk || edge != nodeEdge {
+		_tk = false
 		if edge.isInResult() {
 			return false
 		}

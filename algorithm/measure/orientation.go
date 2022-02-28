@@ -1,6 +1,7 @@
 package measure
 
 import (
+	"fmt"
 	"github.com/spatial-go/geoos/algorithm/matrix"
 )
 
@@ -37,20 +38,20 @@ type Orientation struct {
 // Returns:
 //		true if the ring is oriented counter-clockwise.
 func (o Orientation) IsCCW(ring matrix.LineMatrix) bool {
+	fmt.Println("----ring=",ring)
 	// of points without closing endpoint
 	nPts := len(ring) - 1
 	// return default value if ring is flat
 	if nPts < 3 {
 		return false
 	}
-
 	/**
 	 * Find first highest point after a lower point, if one exists
 	 * (e.g. a rising segment)
 	 * If one does not exist, hiIndex will remain 0
 	 * and the ring must be flat.
 	 * Note this relies on the convention that
-	 * rings have the same stxart and end point.
+	 * rings have the same start and end point.
 	 */
 	upHiPt := matrix.Matrix(ring[0])
 	prevY := upHiPt[1]
@@ -74,14 +75,15 @@ func (o Orientation) IsCCW(ring matrix.LineMatrix) bool {
 	if iUpHi == 0 {
 		return false
 	}
-
 	/**
 	 * Find the next lower point after the high point
 	 * (e.g. a falling segment).
 	 * This must exist since ring is not flat.
 	 */
 	iDownLow := iUpHi
-	for iDownLow != iUpHi && ring[iDownLow][1] == upHiPt[1] {
+	_tk := true
+	for _tk || iDownLow != iUpHi && ring[iDownLow][1] == upHiPt[1] {
+		_tk = false
 		iDownLow = (iDownLow + 1) % nPts
 	}
 
@@ -120,6 +122,7 @@ func (o Orientation) IsCCW(ring matrix.LineMatrix) bool {
 		 * In this case the orientation is 0, and the result is false.
 		 */
 		index := o.index(upLowPt, upHiPt, downLowPt)	// todo 涉及到cg dd算法
+		fmt.Println("isCCW.index=", index)
 		return index == COUNTERCLOCKWISE
 	} else {
 		/**

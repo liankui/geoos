@@ -231,7 +231,10 @@ func (ls LineString) ComputeEnvelopeInternal() *envelope.Envelope {
 
 // expandEnvelope LineString expend envelop.
 func (ls LineString) expandEnvelope(env *envelope.Envelope) *envelope.Envelope {
-	matrices := ls.ToMatrix().Bound()
+	matrices := make([]matrix.Matrix, 0)
+	for _, l := range ls {
+		matrices = append(matrices, l)
+	}
 	for _, m := range matrices {
 		env.ExpandToIncludeMatrix(m)
 	}

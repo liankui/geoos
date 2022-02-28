@@ -54,7 +54,6 @@ Coordinates are represented internally as Java double-precision values. Java use
 floating point standard, which provides 53 bits of precision. (Thus the maximum precisely
 representable integer is 9,007,199,254,740,992 - or almost 16 decimal digits of precision).
 */
-
 type PrecisionModel struct {
 	Name string
 	// The type of PrecisionModel this represents.
@@ -66,13 +65,14 @@ type PrecisionModel struct {
 	GridSize float64
 }
 
+// NewPrecisionModel...
 func NewPrecisionModel() *PrecisionModel {
 	return &PrecisionModel{
 		ModelType: FLOATING,
 	}
 }
 
-// Tests whether the precision model supports floating point
+// IsFloating Tests whether the precision model supports floating point
 func (p *PrecisionModel) IsFloating() bool {
 	if p.ModelType == FLOATING || p.ModelType == FLOATING_SINGLE {
 		return true

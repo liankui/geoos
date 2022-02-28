@@ -93,7 +93,9 @@ func (h *HalfEdge) Insert(eAdd *HalfEdge) {
 //		the edge to insert after
 func (h *HalfEdge) insertionEdge(eAdd *HalfEdge) *HalfEdge {
 	ePrev := h
-	for ePrev != h {
+	_tk := true
+	for _tk || ePrev != h {
+		_tk = false
 		eNext := ePrev.ONext()
 		/**
 		 * Case 1: General case,

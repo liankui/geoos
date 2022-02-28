@@ -38,7 +38,9 @@ func (o *OverlayEdgeRing) setShell(shell *OverlayEdgeRing) {
 func (o *OverlayEdgeRing) computeRingPts(start *OverlayEdge) []matrix.Matrix {
 	edge := start
 	pts := make([]matrix.Matrix, 0)
-	for edge != start {
+	_tk := true
+	for _tk || edge != start {
+		_tk = false
 		if edge.edgeRing == o {
 			log.Printf("Edge visited twice during ring-building at %v %v\n", edge.pts, edge.pts)
 			return nil

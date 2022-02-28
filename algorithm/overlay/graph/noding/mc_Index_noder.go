@@ -34,14 +34,13 @@ func NewMCIndexNoder() *MCIndexNoder {
 
 // ComputeNodes ...
 func (m *MCIndexNoder) ComputeNodes(inputSegStrings interface{}) {
-	fmt.Printf("====computeNodes2")
+	fmt.Printf("====computeNodes2\n")
 	m.nodedSegStrings = inputSegStrings
 	inputSS := inputSegStrings.([]*NodedSegmentString)
 	for i, _ := range inputSS {
 		m.add(inputSS[i])
 	}
 	m.intersectChains()
-	fmt.Printf("====computeNodes4")
 }
 
 // add ...
@@ -51,10 +50,14 @@ func (m *MCIndexNoder) add(segStr *NodedSegmentString) {
 		tmpPts = append(tmpPts, pt)
 	}
 	segChains := chain.ChainsContext(tmpPts, segStr)
-	fmt.Printf("=====segChains:%#v\n", segChains)
+	for _, segChain := range segChains {
+		fmt.Printf("=====segChain1:%#v\n", segChain.Edge)
+		fmt.Printf("=====segChain1:%#v\n", segChain.Env)
+	}
 	for _, mc := range segChains {
 		mc.ID = m.idCounter + 1
 		expansion := mc.EnvelopeExpansion(m.overlapTolerance)
+		fmt.Printf("====expansion=%v\n", expansion)
 		_ = m.index.Insert(expansion, mc)
 		m.monoChains = append(m.monoChains, mc)
 	}

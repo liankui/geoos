@@ -40,10 +40,11 @@ func NewOverlayNG(geom0, geom1 space.Geometry, opCode int) *OverlayNG {
 //	  		may not be robust. If errors occur a TopologyException is thrown.
 func (o *OverlayNG) overlay(g0, g1 space.Geometry, opCode int) space.Geometry {
 	ov := NewOverlayNG(g0, g1, opCode)
+	fmt.Printf("NewOverlayNG=%#v\n", ov)
 	return ov.getResult()
 }
 
-// getResult Gets the result of the overlay operation.
+// getResult Gets the result of the overlay xoperation.
 func (o *OverlayNG) getResult() space.Geometry {
 	// 步骤1： handle empty inputs which determine result
 
@@ -90,7 +91,7 @@ func (o *OverlayNG) nodeEdges() []*Edge {
 	mergedEdges := nodingBuilder.build(
 		o.InputGeom.getGeometry(0),
 		o.InputGeom.getGeometry(1))
-	fmt.Printf("mergedEdges:%v\n", mergedEdges)
+	fmt.Printf("--mergedEdges:%v\n", mergedEdges)
 
 	/**
 	 * Record if an input geometry has collapsed.

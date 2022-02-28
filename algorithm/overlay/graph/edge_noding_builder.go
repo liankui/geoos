@@ -49,7 +49,7 @@ func (e *EdgeNodingBuilder) createFixedPrecisionNoder(precisionModel *noding.Pre
 // createFloatingPrecisionNoder...
 func (e *EdgeNodingBuilder) createFloatingPrecisionNoder(doValidation bool) noding.Noder {
 	mcNoder := noding.NewMCIndexNoder()
-	li := new(noding.LineIntersector)	// todo 待优化
+	li := new(noding.LineIntersector) // todo 待优化
 	mcNoder.SetSinglePassNoder(noding.NewIntersectionAdder(li))
 
 	var noder noding.Noder = mcNoder
@@ -74,9 +74,13 @@ func (e *EdgeNodingBuilder) getNoder() noding.Noder {
 	if e.customNoder != nil {
 		return e.customNoder
 	}
-	if e.precisionModel.IsFloating() {
+
+	var overlayUtil OverlayUtil
+	if overlayUtil.isFloating(e.precisionModel) {
+		fmt.Println("----isFloating")
 		return e.createFloatingPrecisionNoder(IS_NODING_VALIDATED)
 	}
+	fmt.Println("----isFloating2")
 	return e.createFixedPrecisionNoder(e.precisionModel)
 }
 
@@ -92,6 +96,8 @@ func (e *EdgeNodingBuilder) getNoder() noding.Noder {
 func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) []*Edge {
 	e.add(g0, 0)
 	e.add(g1, 1)
+	fmt.Printf("---inputEdges=%#v\n", e.inputEdges[0].GetCoordinates())
+	fmt.Printf("---inputEdges=%#v\n", e.inputEdges[1].GetCoordinates())
 	nodedEdges := e.node(e.inputEdges)
 
 	/**
@@ -100,6 +106,7 @@ func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) []*Edge {
 	 */
 	edgeMerger := new(EdgeMerger)
 	mergedEdges := edgeMerger.merge(nodedEdges)
+	fmt.Printf("---mergedEdges=%#v\n", mergedEdges)
 	return mergedEdges
 }
 
@@ -108,6 +115,7 @@ func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) []*Edge {
 // used to provide source topology info to the constructed Edges (and is then discarded).
 func (e *EdgeNodingBuilder) node(segStrings []*noding.NodedSegmentString) []*Edge {
 	noder := e.getNoder()
+	fmt.Println("----noder=", noder)
 	noder.ComputeNodes(segStrings)
 	fmt.Println("-------nodedSS:pre")
 	nodedSS := noder.GetNodedSubstrings()
@@ -152,10 +160,12 @@ func (e *EdgeNodingBuilder) add(g space.Geometry, geomIndex int) {
 // addPolygon...
 func (e *EdgeNodingBuilder) addPolygon(poly space.Polygon, geomIndex int) {
 	shell := poly.Shell()
+	fmt.Printf("---addPolygon shell=%#v\n", shell)
 	e.addPolygonRing(shell, false, geomIndex)
 	for _, hole := range poly.Holes() {
 		e.addPolygonRing(hole, true, geomIndex)
 	}
+
 }
 
 // addPolygonRing Adds a polygon ring to the graph. Empty rings are ignored.
@@ -163,21 +173,23 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 	if ring.IsEmpty() {
 		return
 	}
-
 	if e.isClippedCompletely(ring.ComputeEnvelopeInternal()) {
 		return
 	}
-
 	pts := e.clip(ring)
-
+	fmt.Printf("---addPolygonRing.pts=%#v\n", pts)
 	// Don't add edges that collapse to a point
 	if len(pts) < 2 {
 		return
 	}
-
 	depthDelta := e.computeDepthDelta(ring, isHole)
 	info := NewEdgeSourceInfo(index, depthDelta, isHole)
+	fmt.Printf("---depthDelta=%v\n", depthDelta)
+	fmt.Printf("---info=%v\n", info)
 	e.addEdge(pts, info)
+	for _, edge := range e.inputEdges {
+		fmt.Printf("e.edge=%#v\n", edge.GetCoordinates())
+	}
 }
 
 // clip If a clipper is present, clip the line to the clip extent.
@@ -190,8 +202,13 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 // Returns:
 //		the points in the clipped line
 func (e *EdgeNodingBuilder) clip(ring space.Ring) []matrix.Matrix {
-	pts := ring.ToMatrix().Bound()
+	pts := make([]matrix.Matrix, 0)
+	for _, f := range ring {
+		pts = append(pts, f)
+	}
 	env := ring.ComputeEnvelopeInternal()
+	fmt.Printf("----clip.pts=%#v\n", pts)
+	fmt.Printf("----clip.env=%#v\n", env)
 
 	/**
 	 * If no clipper or ring is completely contained then no need to clip.

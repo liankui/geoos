@@ -199,7 +199,10 @@ func (mp MultiPoint) ComputeEnvelopeInternal() *envelope.Envelope {
 
 // expandEnvelope LineString expend envelop.
 func (mp MultiPoint) expandEnvelope(env *envelope.Envelope) *envelope.Envelope {
-	matrices := mp.ToMatrix().Bound()
+	matrices := make([]matrix.Matrix, 0)
+	for _, l := range mp {
+		matrices = append(matrices, matrix.Matrix(l))
+	}
 	for _, m := range matrices {
 		env.ExpandToIncludeMatrix(m)
 	}
