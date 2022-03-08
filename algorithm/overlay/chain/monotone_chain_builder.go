@@ -1,6 +1,7 @@
 package chain
 
 import (
+	"fmt"
 	"github.com/spatial-go/geoos/algorithm/calc/angle"
 	"github.com/spatial-go/geoos/algorithm/matrix"
 )
@@ -14,11 +15,14 @@ func Chains(edge matrix.LineMatrix) []*MonotoneChain {
 func ChainsContext(edge matrix.LineMatrix, context interface{}) []*MonotoneChain {
 	mcList := []*MonotoneChain{}
 	chainStart := 0
-	for chainStart < len(edge)-1 {
+	_tk := true
+	for _tk || chainStart < len(edge)-1 {
+		_tk = false
 		chainEnd := findChainEnd(edge, chainStart)
 		mc := &MonotoneChain{Edge: edge, Start: chainStart, End: chainEnd, Context: context}
 		mcList = append(mcList, mc)
 		chainStart = chainEnd
+		fmt.Println("mc.env=", mc.Envelope())
 	}
 	return mcList
 }

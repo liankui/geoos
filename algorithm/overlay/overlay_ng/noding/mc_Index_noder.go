@@ -49,16 +49,17 @@ func (m *MCIndexNoder) add(segStr *NodedSegmentString) {
 	for _, pt := range segStr.pts {
 		tmpPts = append(tmpPts, pt)
 	}
+	fmt.Printf("=====segStr.pts:%+v\n", tmpPts)
 	segChains := chain.ChainsContext(tmpPts, segStr)
-	for _, segChain := range segChains {
-		fmt.Printf("=====segChain1:%#v\n", segChain.Edge)
-		fmt.Printf("=====segChain1:%#v\n", segChain.Env)
-	}
 	for _, mc := range segChains {
+		fmt.Printf("=====segChain1.env:%#v\n", mc.Env)
+		fmt.Printf("=====segChain1.edge:%#v\n", mc.Edge)
+
 		mc.ID = m.idCounter + 1
 		expansion := mc.EnvelopeExpansion(m.overlapTolerance)
 		fmt.Printf("====expansion=%v\n", expansion)
 		_ = m.index.Insert(expansion, mc)
+		//fmt.Printf("insert s.itemBoundables=%#v\n", m.index.(*strtree.STRtree).Query(expansion).(*chain.MonotoneChain))
 		m.monoChains = append(m.monoChains, mc)
 	}
 }
@@ -92,7 +93,9 @@ func (m *MCIndexNoder) intersectChains() {
 
 // getNodedSubstrings...
 func (m *MCIndexNoder) GetNodedSubstrings() interface{} {
-	return nil
+	fmt.Println("====getNodedSubstrings2")
+	var nodeSS NodedSegmentString
+	return nodeSS.GetNodedSubstrings(m.nodedSegStrings) // []SegmentString
 }
 
 type SegmentOverlapAction struct {

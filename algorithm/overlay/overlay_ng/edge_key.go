@@ -1,4 +1,4 @@
-package graph
+package overlay_ng
 
 import "github.com/spatial-go/geoos/algorithm/matrix"
 

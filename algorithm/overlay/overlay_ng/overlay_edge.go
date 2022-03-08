@@ -1,8 +1,8 @@
-package graph
+package overlay_ng
 
 import (
 	"github.com/spatial-go/geoos/algorithm/matrix"
-	"github.com/spatial-go/geoos/algorithm/overlay/graph/edgegraph"
+	"github.com/spatial-go/geoos/algorithm/overlay/overlay_ng/edgegraph"
 )
 
 type OverlayEdge struct {

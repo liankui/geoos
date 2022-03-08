@@ -1,5 +1,5 @@
 // Package operation define valid func for geometries.
-package graph
+package overlay_ng
 
 import (
 	"github.com/spatial-go/geoos/algorithm"

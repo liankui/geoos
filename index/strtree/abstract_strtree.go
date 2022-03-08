@@ -122,7 +122,6 @@ func (s *AbstractSTRtree) insert(bounds *envelope.Envelope, item interface{}) er
 		return index.ErrSTRtreeInsert
 	}
 	s.itemBoundables = append(s.itemBoundables, &ItemBoundable{Bounds: bounds, Item: item})
-	fmt.Printf("insert s.itemBoundables=%#v\n", s.itemBoundables)
 	return nil
 }
 

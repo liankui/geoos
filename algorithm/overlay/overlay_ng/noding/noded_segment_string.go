@@ -17,9 +17,6 @@ type NodedSegmentString struct {
 }
 
 // NewNodedSegmentString Creates a instance from a list of vertices and optional data object.
-// Params:
-//		pts – the vertices of the segment string
-//		data – the user-defined data of this segment string (may be null)
 func NewNodedSegmentString(pts []matrix.Matrix, data interface{}) *NodedSegmentString {
 	return &NodedSegmentString{
 		pts:  pts,
@@ -27,19 +24,19 @@ func NewNodedSegmentString(pts []matrix.Matrix, data interface{}) *NodedSegmentS
 	}
 }
 
-// getNodedSubstrings Gets the SegmentStrings which result from
+// GetNodedSubstrings Gets the SegmentStrings which result from
 // splitting this string at node points.
-// Params:
-//		segStrings – a Collection of NodedSegmentStrings
-// Returns:
-//		a Collection of NodedSegmentStrings representing the substrings
-func (n *NodedSegmentString) getNodedSubstrings(segStrings interface{}) {
-
+func (n *NodedSegmentString) GetNodedSubstrings(segStrings interface{}) []SegmentString {
+	resultEdgelist := make([]SegmentString, 0)
+	n.getNodedSubstrings(segStrings, resultEdgelist)
+	return resultEdgelist
 }
 
-// todo
-func (n *NodedSegmentString) getNodedSubstrings2(segStrings, resultEdgelist interface{}) {
-
+// getNodedSubstrings Adds the noded SegmentStrings which result from splitting this string at node points.
+func (n *NodedSegmentString) getNodedSubstrings(segStrings, resultEdgelist interface{}) {
+	for _, ss := range segStrings.([]*NodedSegmentString) {
+		ss.nodeList.addSplitEdges(resultEdgelist)
+	}
 }
 
 // getData Gets the user-defined data for this segment string.
@@ -56,4 +53,21 @@ func (n *NodedSegmentString) GetCoordinate(i int) matrix.Matrix { return n.pts[i
 func (n *NodedSegmentString) GetCoordinates() []matrix.Matrix   { return n.pts }
 func (n *NodedSegmentString) IsClosed() bool {
 	return n.pts[0].Equals(n.pts[len(n.pts)-1])
+}
+
+// getSegmentOctant Gets the octant of the segment starting at vertex index.
+func (n *NodedSegmentString) getSegmentOctant(index int) int {
+	if index == len(n.pts)-1 {
+		return -1
+	}
+	return n.safeOctant(n.GetCoordinate(index), n.GetCoordinate(index+1))
+}
+
+// safeOctant...
+func (n *NodedSegmentString) safeOctant(p0, p1 matrix.Matrix) int {
+	if p0.Equals(p1) {
+		return 0
+	}
+	var oct Octant
+	return oct.Octant(p0, p1)
 }

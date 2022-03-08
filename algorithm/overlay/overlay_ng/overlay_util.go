@@ -1,7 +1,7 @@
-package graph
+package overlay_ng
 
 import (
-	"github.com/spatial-go/geoos/algorithm/overlay/graph/noding"
+	"github.com/spatial-go/geoos/algorithm/overlay/overlay_ng/noding"
 	"log"
 	"math"
 	"reflect"

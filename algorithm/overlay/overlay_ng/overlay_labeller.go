@@ -1,4 +1,4 @@
-package graph
+package overlay_ng
 
 // mplements the logic to compute the full labeling for the edges in an OverlayGraph.
 type OverlayLabeller struct {

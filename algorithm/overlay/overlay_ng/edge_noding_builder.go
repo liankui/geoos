@@ -1,11 +1,11 @@
-package graph
+package overlay_ng
 
 import (
 	"fmt"
 	"github.com/spatial-go/geoos/algorithm/matrix"
 	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"github.com/spatial-go/geoos/algorithm/measure"
-	"github.com/spatial-go/geoos/algorithm/overlay/graph/noding"
+	"github.com/spatial-go/geoos/algorithm/overlay/overlay_ng/noding"
 	"github.com/spatial-go/geoos/space"
 )
 
