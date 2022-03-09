@@ -275,6 +275,9 @@ func (e *EdgeNodingBuilder) computeDepthDelta(ring space.Ring, isHole bool) int 
 func (e *EdgeNodingBuilder) addEdge(pts []matrix.Matrix, info *EdgeSourceInfo) {
 	ss := noding.NewNodedSegmentString(pts, info)
 	e.inputEdges = append(e.inputEdges, ss)
+	for _, edge := range e.inputEdges {
+		fmt.Println("--addEdge=", edge)
+	}
 }
 
 // hasEdgesFor Reports whether there are noded edges for the given input geometry.

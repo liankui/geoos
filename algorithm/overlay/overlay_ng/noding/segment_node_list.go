@@ -1,6 +1,7 @@
 package noding
 
 import (
+	"fmt"
 	"github.com/spatial-go/geoos/algorithm/matrix"
 	"log"
 )
@@ -22,8 +23,9 @@ func NewSegmentNodeList(edge *NodedSegmentString) *SegmentNodeList {
 // in this list split the parent edge into. Adds the edges to the provided
 // argument list (this is so a single list can be used to accumulate all split
 // edges for a set of SegmentStrings).
-func (s *SegmentNodeList) addSplitEdges(edgeList interface{}) {
+func (s *SegmentNodeList) addSplitEdges(edgeList interface{}) interface{} {
 	// ensure that the list has entries for the first and last point of the edge
+	fmt.Println("====edge=", s.edge.pts)
 	s.addEndpoints()
 	s.addCollapsedNodes()
 
@@ -39,14 +41,12 @@ func (s *SegmentNodeList) addSplitEdges(edgeList interface{}) {
 		edgeList = append(edgeList.([]SegmentString), newEdge)
 		eiPrev = ei
 	}
+	return edgeList
 }
 
 // addEndpoints Adds nodes for the first and last points of the edge
 func (s *SegmentNodeList) addEndpoints() {
-	maxSegIndex := 0
-	if s.edge != nil {
-		maxSegIndex = len(s.edge.pts) - 1
-	}
+	maxSegIndex := len(s.edge.pts) - 1
 	s.add(s.edge.GetCoordinate(0), 0)
 	s.add(s.edge.GetCoordinate(maxSegIndex), maxSegIndex)
 }
@@ -89,7 +89,7 @@ func (s *SegmentNodeList) addCollapsedNodes() {
 // after an existing edge vertex. To provide the correct fully noded semantics, the vertex must be
 // added as a node as well.
 func (s *SegmentNodeList) findCollapsesFromInsertedNodes(collapsedVertexIndexes []int) {
-	collapsedVertexIndex := make([]int, 1)
+	collapsedVertexIndex := make([]int, 0)
 	// there should always be at least two entries in the list, since the endpoints are nodes
 	eiPrev := s.nodeMap[0]
 	for i := 1; i < len(s.nodeMap); i++ {

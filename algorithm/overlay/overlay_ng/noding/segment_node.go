@@ -19,6 +19,6 @@ func NewSegmentNode(segString *NodedSegmentString, coord matrix.Matrix, segmentI
 		coord:         coord,
 		segmentIndex:  segmentIndex,
 		segmentOctant: segmentOctant,
-		isInterior:    coord.Equals(segString.GetCoordinate(segmentIndex)),
+		isInterior:    !coord.Equals(segString.GetCoordinate(segmentIndex)),
 	}
 }

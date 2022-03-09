@@ -40,7 +40,7 @@ func NewOverlayNG(geom0, geom1 space.Geometry, opCode int) *OverlayNG {
 //	  		may not be robust. If errors occur a TopologyException is thrown.
 func (o *OverlayNG) overlay(g0, g1 space.Geometry, opCode int) space.Geometry {
 	ov := NewOverlayNG(g0, g1, opCode)
-	fmt.Printf("NewOverlayNG=%#v\n", ov)
+	//fmt.Printf("NewOverlayNG=%#v\n", ov)
 	return ov.getResult()
 }
 

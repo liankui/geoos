@@ -93,9 +93,13 @@ func (m *MCIndexNoder) intersectChains() {
 
 // getNodedSubstrings...
 func (m *MCIndexNoder) GetNodedSubstrings() interface{} {
-	fmt.Println("====getNodedSubstrings2")
+	fmt.Println("====getNodedSubstrings2=", m.nodedSegStrings.([]*NodedSegmentString)[0], m.nodedSegStrings.([]*NodedSegmentString)[1])
 	var nodeSS NodedSegmentString
-	return nodeSS.GetNodedSubstrings(m.nodedSegStrings) // []SegmentString
+	substrings := nodeSS.GetNodedSubstrings(m.nodedSegStrings) // []SegmentString
+	for i, _ := range substrings {
+		fmt.Println("====substrings=", substrings[i])
+	}
+	return substrings
 }
 
 type SegmentOverlapAction struct {
