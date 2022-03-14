@@ -5,6 +5,7 @@ import (
 	"github.com/spatial-go/geoos/algorithm/overlay/chain"
 	"github.com/spatial-go/geoos/index"
 	"github.com/spatial-go/geoos/index/strtree"
+	"strconv"
 )
 
 // MCIndexNoder Nodes a set of SegmentStrings using a index based on MonotoneChains and a SpatialIndex.
@@ -71,9 +72,9 @@ func (m *MCIndexNoder) intersectChains() {
 		queryEnv := queryChain.EnvelopeExpansion(m.overlapTolerance)
 		fmt.Printf("intersectChains1,queryEnv=%+v\n", queryEnv)
 		overlapChains := m.index.Query(queryEnv) // STRtree
-		fmt.Printf("000 overlapChains:%#v\n", overlapChains)
+		//fmt.Printf("000 overlapChains:%#v\n", overlapChains)
 		for _, testChain := range overlapChains.([]interface{}) {
-			fmt.Printf("intersectChains3")
+			//fmt.Println("intersectChains3")
 			/**
 			 * following test makes sure we only compare each pair of chains once
 			 * and that we don't compare a chain to itself
@@ -86,14 +87,23 @@ func (m *MCIndexNoder) intersectChains() {
 			if m.segInt.isDone() {
 				return
 			}
-			fmt.Printf("intersectChains4")
+			//fmt.Println("intersectChains4")
 		}
 	}
 }
 
+// todo remove
+func PrintlnNodedSegStrings(req []*NodedSegmentString) {
+	fmt.Print("===getNodedSubstrings2: ")
+	for i, _ := range req {
+		fmt.Print(strconv.Itoa(i) + ":", req[i], "| ")
+	}
+	fmt.Println()
+}
+
 // getNodedSubstrings...
 func (m *MCIndexNoder) GetNodedSubstrings() interface{} {
-	fmt.Println("====getNodedSubstrings2=", m.nodedSegStrings.([]*NodedSegmentString)[0], m.nodedSegStrings.([]*NodedSegmentString)[1])
+	PrintlnNodedSegStrings(m.nodedSegStrings.([]*NodedSegmentString))
 	var nodeSS NodedSegmentString
 	substrings := nodeSS.GetNodedSubstrings(m.nodedSegStrings) // []SegmentString
 	for i, _ := range substrings {

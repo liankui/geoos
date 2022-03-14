@@ -160,9 +160,10 @@ func (e *EdgeNodingBuilder) add(g space.Geometry, geomIndex int) {
 // addPolygon...
 func (e *EdgeNodingBuilder) addPolygon(poly space.Polygon, geomIndex int) {
 	shell := poly.Shell()
-	fmt.Printf("---addPolygon shell=%#v\n", shell)
+	fmt.Printf("---addPolygon.shell=%#v\n", shell)
 	e.addPolygonRing(shell, false, geomIndex)
 	for _, hole := range poly.Holes() {
+		fmt.Printf("---addPolygon.hole=%#v\n", shell)
 		e.addPolygonRing(hole, true, geomIndex)
 	}
 
@@ -283,10 +284,6 @@ func (e *EdgeNodingBuilder) addEdge(pts []matrix.Matrix, info *EdgeSourceInfo) {
 // hasEdgesFor Reports whether there are noded edges for the given input geometry.
 // If there are none, this indicates that either the geometry was empty, or has completely
 // collapsed (because it is smaller than the noding precision).
-// Params:
-//		geomIndex – index of input geometry
-// Returns:
-//		true if there are edges for the geometry
 func (e *EdgeNodingBuilder) hasEdgesFor(geomIndex int) bool {
 	return e.hasEdges[geomIndex]
 }

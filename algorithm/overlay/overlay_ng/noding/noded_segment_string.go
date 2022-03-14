@@ -3,6 +3,7 @@ package noding
 import (
 	"fmt"
 	"github.com/spatial-go/geoos/algorithm/matrix"
+	"strconv"
 )
 
 // Represents a list of contiguous line segments, and supports noding
@@ -38,16 +39,22 @@ func (n *NodedSegmentString) GetNodedSubstrings(segStrings interface{}) []Segmen
 // getNodedSubstrings Adds the noded SegmentStrings which result from splitting this string at node points.
 func (n *NodedSegmentString) getNodedSubstrings(segStrings, resultEdgeList interface{}) interface{} {
 	for _, ss := range segStrings.([]*NodedSegmentString) {
-		fmt.Println("===ss", ss.nodeList.nodeMap)
 		fmt.Println("===ss.pts", ss.nodeList.edge.GetCoordinates())
 		resultEdgeList = ss.nodeList.addSplitEdges(resultEdgeList)
+		fmt.Print("===ss.resultEdgeList")
+		PrintlnEdgeList(resultEdgeList)
 	}
 	fmt.Print("===getNodedSubstrings:")
+	PrintlnEdgeList(resultEdgeList)
+	return resultEdgeList
+}
+
+// todo remove
+func PrintlnEdgeList(resultEdgeList interface{}) {
 	for i, _ := range resultEdgeList.([]SegmentString) {
-		fmt.Print("i:", resultEdgeList.([]SegmentString)[i])
+		fmt.Print(strconv.Itoa(i) + ":", resultEdgeList.([]SegmentString)[i], " ")
 	}
 	fmt.Println()
-	return resultEdgeList
 }
 
 // getData Gets the user-defined data for this segment string.

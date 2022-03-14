@@ -135,7 +135,7 @@ func (s *AbstractSTRtree) query(searchBounds *envelope.Envelope) interface{} {
 	}
 	if s.Root.getBounds().IsIntersects(searchBounds) {
 		matches, _ = s.queryInternal(searchBounds, s.Root, matches)
-		fmt.Printf("----intersects, matches2=%#v\n", matches)
+		//fmt.Printf("----intersects, matches2=%#v\n", matches)
 	}
 	return matches
 }
