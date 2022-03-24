@@ -6,6 +6,7 @@ import (
 	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"github.com/spatial-go/geoos/algorithm/measure"
 	"github.com/spatial-go/geoos/algorithm/overlay/overlay_ng/noding"
+	"github.com/spatial-go/geoos/algorithm/overlay/overlay_ng/noding/snapround"
 	"github.com/spatial-go/geoos/space"
 )
 
@@ -42,7 +43,7 @@ func NewEdgeNodingBuilder(pm *noding.PrecisionModel, noder noding.Noder) *EdgeNo
 
 // createFixedPrecisionNoder...
 func (e *EdgeNodingBuilder) createFixedPrecisionNoder(precisionModel *noding.PrecisionModel) noding.Noder {
-	noder := noding.NewSnapRoundingNoder(precisionModel)
+	noder := snapround.NewSnapRoundingNoder(precisionModel)
 	return noder
 }
 
@@ -96,8 +97,8 @@ func (e *EdgeNodingBuilder) getNoder() noding.Noder {
 func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) []*Edge {
 	e.add(g0, 0)
 	e.add(g1, 1)
-	fmt.Printf("---inputEdges=%#v\n", e.inputEdges[0].GetCoordinates())
-	fmt.Printf("---inputEdges=%#v\n", e.inputEdges[1].GetCoordinates())
+	//fmt.Printf("---inputEdges=%#v\n", e.inputEdges[0].GetCoordinates())
+	//fmt.Printf("---inputEdges=%#v\n", e.inputEdges[1].GetCoordinates())
 	nodedEdges := e.node(e.inputEdges)
 
 	/**
@@ -115,9 +116,10 @@ func (e *EdgeNodingBuilder) build(g0, g1 space.Geometry) []*Edge {
 // used to provide source topology info to the constructed Edges (and is then discarded).
 func (e *EdgeNodingBuilder) node(segStrings []*noding.NodedSegmentString) []*Edge {
 	noder := e.getNoder()
-	fmt.Println("----noder=", noder)
+	//fmt.Println("----noder=", noder)
+	fmt.Println("----segStrings=", segStrings[0], segStrings[1])
 	noder.ComputeNodes(segStrings)
-	fmt.Println("-------nodedSS:pre")
+	//fmt.Println("-------nodedSS:pre")
 	nodedSS := noder.GetNodedSubstrings()
 	fmt.Println("-------nodedSS:", nodedSS)
 	nodedEdges := e.createEdges(nodedSS.([]noding.SegmentString))
@@ -160,10 +162,10 @@ func (e *EdgeNodingBuilder) add(g space.Geometry, geomIndex int) {
 // addPolygon...
 func (e *EdgeNodingBuilder) addPolygon(poly space.Polygon, geomIndex int) {
 	shell := poly.Shell()
-	fmt.Printf("---addPolygon.shell=%#v\n", shell)
+	//fmt.Printf("---addPolygon.shell=%#v\n", shell)
 	e.addPolygonRing(shell, false, geomIndex)
 	for _, hole := range poly.Holes() {
-		fmt.Printf("---addPolygon.hole=%#v\n", shell)
+		//fmt.Printf("---addPolygon.hole=%#v\n", shell)
 		e.addPolygonRing(hole, true, geomIndex)
 	}
 
@@ -178,19 +180,19 @@ func (e *EdgeNodingBuilder) addPolygonRing(ring space.Ring, isHole bool, index i
 		return
 	}
 	pts := e.clip(ring)
-	fmt.Printf("---addPolygonRing.pts=%#v\n", pts)
+	//fmt.Printf("---addPolygonRing.pts=%#v\n", pts)
 	// Don't add edges that collapse to a point
 	if len(pts) < 2 {
 		return
 	}
 	depthDelta := e.computeDepthDelta(ring, isHole)
 	info := NewEdgeSourceInfo(index, depthDelta, isHole)
-	fmt.Printf("---depthDelta=%v\n", depthDelta)
-	fmt.Printf("---info=%v\n", info)
+	//fmt.Printf("---depthDelta=%v\n", depthDelta)
+	//fmt.Printf("---info=%v\n", info)
 	e.addEdge(pts, info)
-	for _, edge := range e.inputEdges {
-		fmt.Printf("e.edge=%#v\n", edge.GetCoordinates())
-	}
+	//for _, edge := range e.inputEdges {
+	//	fmt.Printf("e.edge=%#v\n", edge.GetCoordinates())
+	//}
 }
 
 // clip If a clipper is present, clip the line to the clip extent.
@@ -208,8 +210,8 @@ func (e *EdgeNodingBuilder) clip(ring space.Ring) []matrix.Matrix {
 		pts = append(pts, f)
 	}
 	env := ring.ComputeEnvelopeInternal()
-	fmt.Printf("----clip.pts=%#v\n", pts)
-	fmt.Printf("----clip.env=%#v\n", env)
+	//fmt.Printf("----clip.pts=%#v\n", pts)
+	//fmt.Printf("----clip.env=%#v\n", env)
 
 	/**
 	 * If no clipper or ring is completely contained then no need to clip.
@@ -276,9 +278,9 @@ func (e *EdgeNodingBuilder) computeDepthDelta(ring space.Ring, isHole bool) int 
 func (e *EdgeNodingBuilder) addEdge(pts []matrix.Matrix, info *EdgeSourceInfo) {
 	ss := noding.NewNodedSegmentString(pts, info)
 	e.inputEdges = append(e.inputEdges, ss)
-	for _, edge := range e.inputEdges {
-		fmt.Println("--addEdge=", edge)
-	}
+	//for _, edge := range e.inputEdges {
+	//	fmt.Println("--addEdge=", edge)
+	//}
 }
 
 // hasEdgesFor Reports whether there are noded edges for the given input geometry.

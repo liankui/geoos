@@ -38,7 +38,7 @@ type Orientation struct {
 // Returns:
 //		true if the ring is oriented counter-clockwise.
 func (o Orientation) IsCCW(ring matrix.LineMatrix) bool {
-	fmt.Println("----ring=",ring)
+	//fmt.Println("----ring=",ring)
 	// of points without closing endpoint
 	nPts := len(ring) - 1
 	// return default value if ring is flat

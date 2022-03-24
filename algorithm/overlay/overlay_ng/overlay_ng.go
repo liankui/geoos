@@ -23,9 +23,9 @@ type OverlayNG struct {
 }
 
 // NewOverlayNG...
-func NewOverlayNG(geom0, geom1 space.Geometry, opCode int) *OverlayNG {
+func NewOverlayNG(geom0, geom1 space.Geometry, opCode int, pm *noding.PrecisionModel) *OverlayNG {
 	return &OverlayNG{
-		Pm:          noding.NewPrecisionModel(),
+		Pm:          pm,
 		OpCode:      opCode,
 		InputGeom:   NewInputGeometry(geom0, geom1),
 		isOptimized: true,
@@ -34,13 +34,16 @@ func NewOverlayNG(geom0, geom1 space.Geometry, opCode int) *OverlayNG {
 
 // overlay Computes an overlay operation on the given geometry operands, using the
 // precision model of the geometry. and an appropriate noder.
-// The noder is chosen according to the precision model specified.
-//		For PrecisionModel.FIXED a snap-rounding noder is used, and the computation is robust.
-//		For PrecisionModel.FLOATING a non-snapping noder is used, and this computation
-//	  		may not be robust. If errors occur a TopologyException is thrown.
 func (o *OverlayNG) overlay(g0, g1 space.Geometry, opCode int) space.Geometry {
-	ov := NewOverlayNG(g0, g1, opCode)
+	ov := NewOverlayNG(g0, g1, opCode, noding.NewDefaultPrecisionModel())
 	//fmt.Printf("NewOverlayNG=%#v\n", ov)
+	return ov.getResult()
+}
+
+// overlaySR Computes an overlay operation for the given geometry operands, with the noding
+// strategy determined by the precision model.
+func (o *OverlayNG) overlaySR(g0, g1 space.Geometry, opCode int, pm *noding.PrecisionModel) space.Geometry {
+	ov := NewOverlayNG(g0, g1, opCode, pm)
 	return ov.getResult()
 }
 
