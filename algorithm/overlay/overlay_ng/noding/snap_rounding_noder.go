@@ -1,10 +1,11 @@
-package snapround
+package noding
 
 import (
 	"fmt"
 	"github.com/spatial-go/geoos/algorithm/matrix"
-	"github.com/spatial-go/geoos/algorithm/overlay/overlay_ng/noding"
 )
+
+const NEARNESS_FACTOR = 100
 
 // Uses Snap Rounding to compute a rounded, fully noded arrangement from a set of
 // SegmentStrings, in a performant way, and avoiding unnecessary noding.
@@ -22,13 +23,13 @@ import (
 // vertices will be noded. This still provides fully-noded output. This is the same behaviour
 // provided by other noders, such as MCIndexNoder and org.locationtech.jts.noding.snap.SnappingNoder.
 type SnapRoundingNoder struct {
-	precisionModel *noding.PrecisionModel
+	precisionModel *PrecisionModel
 	pixelIndex     *HotPixelIndex
-	snappedResult  []*noding.NodedSegmentString
+	snappedResult  []*NodedSegmentString
 }
 
 // NewSnapRoundingNoder...
-func NewSnapRoundingNoder(pm *noding.PrecisionModel) *SnapRoundingNoder {
+func NewSnapRoundingNoder(pm *PrecisionModel) *SnapRoundingNoder {
 	return &SnapRoundingNoder{
 		precisionModel: pm,
 		pixelIndex:     NewHotPixelIndex(pm),
@@ -39,7 +40,7 @@ func NewSnapRoundingNoder(pm *noding.PrecisionModel) *SnapRoundingNoder {
 // The nodes are added to the NodedSegmentStrings provided as the input.
 func (s *SnapRoundingNoder) ComputeNodes(segStrings interface{}) {
 	fmt.Println("====computeNodes8")
-	s.snappedResult = s.snapRound(segStrings.([]*noding.NodedSegmentString))
+	s.snappedResult = s.snapRound(segStrings.([]*NodedSegmentString))
 }
 
 // getNodedSubstrings...
@@ -49,7 +50,7 @@ func (s *SnapRoundingNoder) GetNodedSubstrings() interface{} {
 }
 
 // snapRound...
-func (s *SnapRoundingNoder) snapRound(segStrings []*noding.NodedSegmentString) []*noding.NodedSegmentString {
+func (s *SnapRoundingNoder) snapRound(segStrings []*NodedSegmentString) []*NodedSegmentString {
 	/**
 	 * Determine hot pixels for intersections and vertices.
 	 * This is done BEFORE the input lines are rounded,
@@ -63,10 +64,23 @@ func (s *SnapRoundingNoder) snapRound(segStrings []*noding.NodedSegmentString) [
 	return snapped
 }
 
+// addIntersectionPixels Detects interior intersections in the collection of SegmentStrings,
+// and adds nodes for them to the segment strings. Also creates HotPixel nodes for the intersection points.
+func (s *SnapRoundingNoder) addIntersectionPixels(segStrings []*NodedSegmentString) {
+	// nearness tolerance is a small fraction of the grid size.
+	snapGridSize := 1.0 / s.precisionModel.Scale
+	nearnessTol := snapGridSize / NEARNESS_FACTOR
+
+	intAdder := NewSnapRoundingIntersectionAdder(nearnessTol)
+	noder := NewMCIndexNoderByTolerance(intAdder, nearnessTol)
+	noder.ComputeNodes(segStrings)
+	s.pixelIndex.addNodes(intAdder.intersections)
+}
+
 // computeSnaps Computes new segment strings which are rounded and contain intersections
 // added as a result of snapping segments to snap points (hot pixels).
-func (s *SnapRoundingNoder) computeSnaps(segStrings []*noding.NodedSegmentString) []*noding.NodedSegmentString {
-	snapped := make([]*noding.NodedSegmentString, 0)
+func (s *SnapRoundingNoder) computeSnaps(segStrings []*NodedSegmentString) []*NodedSegmentString {
+	snapped := make([]*NodedSegmentString, 0)
 	for _, ss := range segStrings {
 		snappedSS := s.computeSegmentSnaps(ss)
 		if snappedSS != nil {
@@ -85,7 +99,7 @@ func (s *SnapRoundingNoder) computeSnaps(segStrings []*noding.NodedSegmentString
 }
 
 // Add snapped vertices to a segment string. If the segment string collapses completely due to rounding, null is returned.
-func (s *SnapRoundingNoder) computeSegmentSnaps(ss *noding.NodedSegmentString) *noding.NodedSegmentString {
+func (s *SnapRoundingNoder) computeSegmentSnaps(ss *NodedSegmentString) *NodedSegmentString {
 	/**
 	 * Get edge coordinates, including added intersection nodes.
 	 * The coordinates are now rounded to the grid,
@@ -100,7 +114,7 @@ func (s *SnapRoundingNoder) computeSegmentSnaps(ss *noding.NodedSegmentString) *
 	}
 
 	// Create new nodedSS to allow adding any hot pixel nodes
-	snapSS := noding.NewNodedSegmentString(ptsRound, ss.GetData())
+	snapSS := NewNodedSegmentString(ptsRound, ss.GetData())
 	snapSSindex := 0
 	for i := 0; i < len(pts)-1; i++ {
 		currSnap := snapSS.GetCoordinate(i)
@@ -124,7 +138,7 @@ func (s *SnapRoundingNoder) computeSegmentSnaps(ss *noding.NodedSegmentString) *
 }
 
 // snapSegment Snaps a segment in a segmentString to HotPixels that it intersects.
-func (s *SnapRoundingNoder) snapSegment(p0, p1 matrix.Matrix, ss *noding.NodedSegmentString, segIndex int) {
+func (s *SnapRoundingNoder) snapSegment(p0, p1 matrix.Matrix, ss *NodedSegmentString, segIndex int) {
 	KdNodeVisitor()
 }
 

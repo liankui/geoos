@@ -33,6 +33,20 @@ func NewMCIndexNoder() *MCIndexNoder {
 	}
 }
 
+// NewMCIndexNoderByTolerance Creates a new noder with a given SegmentIntersector and
+// an overlap tolerance distance to expand intersection tests with.
+func NewMCIndexNoderByTolerance(si SegmentIntersector, overlapTolerance float64) *MCIndexNoder {
+	mc := MCIndexNoder{
+		index: &strtree.STRtree{
+			AbstractSTRtree: &strtree.AbstractSTRtree{
+				NodeCapacity: strtree.DEFAULT_NODE_CAPACITY,
+			}},
+		overlapTolerance: overlapTolerance,
+	}
+	mc.SetSinglePassNoder(si)
+	return &mc
+}
+
 // ComputeNodes ...
 func (m *MCIndexNoder) ComputeNodes(inputSegStrings interface{}) {
 	fmt.Printf("====computeNodes2\n")
@@ -96,7 +110,7 @@ func (m *MCIndexNoder) intersectChains() {
 func PrintlnNodedSegStrings(req []*NodedSegmentString) {
 	fmt.Print("===getNodedSubstrings2: ")
 	for i, _ := range req {
-		fmt.Print(strconv.Itoa(i) + ":", req[i], "| ")
+		fmt.Print(strconv.Itoa(i)+":", req[i], "| ")
 	}
 	fmt.Println()
 }

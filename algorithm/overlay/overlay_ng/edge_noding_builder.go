@@ -6,7 +6,6 @@ import (
 	"github.com/spatial-go/geoos/algorithm/matrix/envelope"
 	"github.com/spatial-go/geoos/algorithm/measure"
 	"github.com/spatial-go/geoos/algorithm/overlay/overlay_ng/noding"
-	"github.com/spatial-go/geoos/algorithm/overlay/overlay_ng/noding/snapround"
 	"github.com/spatial-go/geoos/space"
 )
 
@@ -43,7 +42,7 @@ func NewEdgeNodingBuilder(pm *noding.PrecisionModel, noder noding.Noder) *EdgeNo
 
 // createFixedPrecisionNoder...
 func (e *EdgeNodingBuilder) createFixedPrecisionNoder(precisionModel *noding.PrecisionModel) noding.Noder {
-	noder := snapround.NewSnapRoundingNoder(precisionModel)
+	noder := noding.NewSnapRoundingNoder(precisionModel)
 	return noder
 }
 

@@ -6,7 +6,6 @@ import (
 )
 
 type OverlayNGRobust struct {
-	
 }
 
 // overlay Overlay two geometries, using heuristics to ensure computation completes
@@ -42,10 +41,11 @@ func (o *OverlayNGRobust) overlay(geom0, geom1 space.Geometry, opCode int) space
 	return nil
 }
 
+// overlaySR Attempt Overlay using Snap-Rounding with an automatically-determined scale factor.
 func (o *OverlayNGRobust) overlaySR(geom0, geom1 space.Geometry, opCode int) space.Geometry {
-	var p PrecisionUtil
-	safeScale := p.safeScaleForTwoGeom(geom0, geom1)
+	var precisionUtil PrecisionUtil
+	safeScale := precisionUtil.safeScaleForTwoGeom(geom0, geom1)
 	pmSafe := noding.NewPrecisionModelByScale(safeScale)
-	var ov OverlayNG
-	return ov.overlaySR(geom0, geom1, opCode, pmSafe)
+	var overlayNG OverlayNG
+	return overlayNG.overlaySR(geom0, geom1, opCode, pmSafe)
 }
