@@ -3,11 +3,12 @@ package noding
 import (
 	"fmt"
 	"github.com/spatial-go/geoos/algorithm/matrix"
+	"github.com/spatial-go/geoos/index/kdtree"
 )
 
 const NEARNESS_FACTOR = 100
 
-// Uses Snap Rounding to compute a rounded, fully noded arrangement from a set of
+// SnapRoundingNoder Uses Snap Rounding to compute a rounded, fully noded arrangement from a set of
 // SegmentStrings, in a performant way, and avoiding unnecessary noding.
 // Implements the Snap Rounding technique described in the papers by Hobby,
 // Guibas & Marimont, and Goodrich et al. Snap Rounding enforces that all output
@@ -28,7 +29,7 @@ type SnapRoundingNoder struct {
 	snappedResult  []*NodedSegmentString
 }
 
-// NewSnapRoundingNoder...
+// NewSnapRoundingNoder ...
 func NewSnapRoundingNoder(pm *PrecisionModel) *SnapRoundingNoder {
 	return &SnapRoundingNoder{
 		precisionModel: pm,
@@ -36,16 +37,15 @@ func NewSnapRoundingNoder(pm *PrecisionModel) *SnapRoundingNoder {
 	}
 }
 
-// computeNodes Computes the nodes in the snap-rounding line arrangement.
+// ComputeNodes Computes the nodes in the snap-rounding line arrangement.
 // The nodes are added to the NodedSegmentStrings provided as the input.
 func (s *SnapRoundingNoder) ComputeNodes(segStrings interface{}) {
 	fmt.Println("====computeNodes8")
 	s.snappedResult = s.snapRound(segStrings.([]*NodedSegmentString))
 }
 
-// getNodedSubstrings...
+// GetNodedSubstrings ...
 func (s *SnapRoundingNoder) GetNodedSubstrings() interface{} {
-
 	return nil
 }
 
@@ -57,8 +57,8 @@ func (s *SnapRoundingNoder) snapRound(segStrings []*NodedSegmentString) []*Noded
 	 * to avoid distorting the line arrangement
 	 * (rounding can cause vertices to move across edges).
 	 */
-	addIntersectionPixels(segStrings)
-	addVertexPixels(segStrings)
+	s.addIntersectionPixels(segStrings)
+	s.addVertexPixels(segStrings)
 
 	snapped := s.computeSnaps(segStrings)
 	return snapped
@@ -75,6 +75,15 @@ func (s *SnapRoundingNoder) addIntersectionPixels(segStrings []*NodedSegmentStri
 	noder := NewMCIndexNoderByTolerance(intAdder, nearnessTol)
 	noder.ComputeNodes(segStrings)
 	s.pixelIndex.addNodes(intAdder.intersections)
+}
+
+// addVertexPixels Creates HotPixels for each vertex in the input segStrings. The HotPixels
+// are not marked as nodes, since they will only be nodes in the final line arrangement if
+// they interact with other segments (or they are already created as intersection nodes).
+func (s *SnapRoundingNoder) addVertexPixels(segStrings []*NodedSegmentString) {
+	for _, ss := range segStrings {
+		s.pixelIndex.addPts(ss.GetCoordinates())
+	}
 }
 
 // computeSnaps Computes new segment strings which are rounded and contain intersections
@@ -139,7 +148,8 @@ func (s *SnapRoundingNoder) computeSegmentSnaps(ss *NodedSegmentString) *NodedSe
 
 // snapSegment Snaps a segment in a segmentString to HotPixels that it intersects.
 func (s *SnapRoundingNoder) snapSegment(p0, p1 matrix.Matrix, ss *NodedSegmentString, segIndex int) {
-	KdNodeVisitor()
+	s.pixelIndex.query(p0, p1, new(SnapRoundingNoder))
+	s.visit(p0, p1, ss, segIndex, new(kdtree.KdNode)) // todo 验证KdNode override处理
 }
 
 // round Gets a list of the rounded coordinates. Duplicate (collapsed) coordinates are removed.
@@ -157,4 +167,61 @@ func (s *SnapRoundingNoder) roundPt(pt matrix.Matrix) matrix.Matrix {
 	copy(p2, pt)
 	s.precisionModel.MakePrecise(p2)
 	return p2
+}
+
+// addVertexNodeSnaps Add nodes for any vertices in hot pixels that were added as nodes during segment noding.
+func (s *SnapRoundingNoder) addVertexNodeSnaps(ss *NodedSegmentString) {
+	pts := ss.GetCoordinates()
+	for i := 1; i < len(pts)-1; i++ {
+		p0 := pts[i]
+		s.snapVertexNode(p0, ss, i)
+	}
+}
+
+// snapVertexNode...
+func (s *SnapRoundingNoder) snapVertexNode(p0 matrix.Matrix, ss *NodedSegmentString, segIndex int) {
+	s.pixelIndex.query(p0, p0, s)
+}
+
+// VisitItem ...
+func (s *SnapRoundingNoder) VisitItem(item interface{}) {
+	// todo
+	//node := item.(*kdtree.KdNode)
+	//hp := node.Data.(*HotPixel)
+	///**
+	// * If vertex pixel is a node, add it.
+	// */
+	//if hp.isNode && hp.originalPt.Equals(p0) {
+	//	ss.addIntersectionNode(p0, segIndex)
+	//}
+}
+
+func (s *SnapRoundingNoder) Items() interface{} {
+	return nil
+}
+
+func (s *SnapRoundingNoder) visit(p0, p1 matrix.Matrix, ss *NodedSegmentString, segIndex int, node *kdtree.KdNode) {
+	hp := node.Data.(HotPixel)
+	/**
+	 * If the hot pixel is not a node, and it contains one of the segment vertices,
+	 * then that vertex is the source for the hot pixel.
+	 * To avoid over-noding a node is not added at this point.
+	 * The hot pixel may be subsequently marked as a node,
+	 * in which case the intersection will be added during the final vertex noding phase.
+	 */
+	if !hp.isNode {
+		if hp.intersects(p0) || hp.intersects(p1) {
+			return
+		}
+	}
+	/**
+	 * Add a node if the segment intersects the pixel.
+	 * Mark the HotPixel as a node (since it may not have been one before).
+	 * This ensures the vertex for it is added as a node during the final vertex noding phase.
+	 */
+	if hp.intersects2(p0, p1) {
+		//System.out.println("Added intersection: " + hp.getCoordinate());
+		ss.addIntersectionNode(hp.originalPt, segIndex)
+		hp.setToNode()
+	}
 }

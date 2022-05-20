@@ -121,7 +121,7 @@ func (o Orientation) IsCCW(ring matrix.LineMatrix) bool {
 		 * This is an invalid ring, which cannot be computed correctly.
 		 * In this case the orientation is 0, and the result is false.
 		 */
-		index := o.index(upLowPt, upHiPt, downLowPt)	// todo 涉及到cg dd算法
+		index := o.index(upLowPt, upHiPt, downLowPt) // todo 涉及到cg dd算法
 		fmt.Println("isCCW.index=", index)
 		return index == COUNTERCLOCKWISE
 	} else {
@@ -168,7 +168,7 @@ func (o Orientation) index(p1, p2, q matrix.Matrix) int {
 	 *
 	 */
 	var cgDD CGAlgorithmsDD
-	return cgDD.orientationIndex(p1, p2, q)
+	return cgDD.OrientationIndexPair(p1, p2, q)
 
 	// testing only
 	//return ShewchuksDeterminant.orientationIndex(p1, p2, q);

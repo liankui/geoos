@@ -2,14 +2,14 @@ package noding
 
 import "github.com/spatial-go/geoos/algorithm/matrix"
 
-// Computes the possible intersections between two line segments in NodedSegmentStrings
+// IntersectionAdder Computes the possible intersections between two line segments in NodedSegmentStrings
 // and adds them to each string using NodedSegmentString.addIntersection(LineIntersector, int, int, int).
 type IntersectionAdder struct {
 	properIntersectionPoint matrix.Matrix
 	li                      *LineIntersector
 }
 
-// NewIntersectionAdder...
+// NewIntersectionAdder ...
 func NewIntersectionAdder(li *LineIntersector) *IntersectionAdder {
 	return &IntersectionAdder{
 		li: li,

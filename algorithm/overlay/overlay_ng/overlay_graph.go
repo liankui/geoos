@@ -5,7 +5,7 @@ import (
 	"github.com/spatial-go/geoos/algorithm/overlay/overlay_ng/edgegraph"
 )
 
-// A planar graph of edges, representing the topology resulting from
+// OverlayGraph A planar graph of edges, representing the topology resulting from
 // an overlay operation. Each source edge is represented by a pair of
 // OverlayEdges, with opposite (symmetric) orientation. The pair of
 // OverlayEdges share the edge coordinates and a single OverlayLabel.

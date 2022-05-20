@@ -2,11 +2,12 @@ package noding
 
 import (
 	"github.com/spatial-go/geoos/algorithm/matrix"
+	"github.com/spatial-go/geoos/algorithm/measure"
 	"log"
 	"math"
 )
 
-// Implements a "hot pixel" as used in the Snap Rounding algorithm. A hot pixel
+// HotPixel Implements a "hot pixel" as used in the Snap Rounding algorithm. A hot pixel
 // is a square region centred on the rounded valud of the coordinate given, and
 // of width equal to the size of the scale factor. It is a partially open region,
 // which contains the interior of the tolerance square and the boundary minus the
@@ -46,4 +47,170 @@ func NewHotPixel(pt matrix.Matrix, scaleFactor float64) *HotPixel {
 
 func (h *HotPixel) setToNode() {
 	h.isNode = true
+}
+
+// scale Scale without rounding. This ensures intersections are checked against original linework.
+// This is required to ensure that intersections are not missed because the segment is moved by snapping.
+func (h *HotPixel) scale(val float64) float64 {
+	return val * h.scaleFactor
+}
+
+// intersects Tests whether a coordinate lies in (intersects) this hot pixel.
+func (h *HotPixel) intersects(p matrix.Matrix) bool {
+	x := h.scale(p[0])
+	y := h.scale(p[1])
+	if x >= h.hpx+h.TOLERANCE {
+		return false
+	}
+	// check Left side
+	if x < h.hpx-h.TOLERANCE {
+		return false
+	}
+	// check Top side
+	if y >= h.hpy+h.TOLERANCE {
+		return false
+	}
+	// check Bottom side
+	if y < h.hpy-h.TOLERANCE {
+		return false
+	}
+	return true
+}
+
+func (h *HotPixel) intersects2(p0, p1 matrix.Matrix) bool {
+	if h.scaleFactor == 1.0 {
+		return h.intersectsScaled(p0[0], p0[1], p1[0], p1[1])
+	}
+
+	sp0x := h.scale(p0[0])
+	sp0y := h.scale(p0[1])
+	sp1x := h.scale(p1[0])
+	sp1y := h.scale(p1[1])
+	return h.intersectsScaled(sp0x, sp0y, sp1x, sp1y)
+}
+
+func (h *HotPixel) intersectsScaled(p0x, p0y, p1x, p1y float64) bool {
+	// determine oriented segment pointing in positive X direction
+	px := p0x
+	py := p0y
+	qx := p1x
+	qy := p1y
+	if px > qx {
+		px = p1x
+		py = p1y
+		qx = p0x
+		qy = p0y
+	}
+
+	/**
+	 * Report false if segment env does not intersect pixel env.
+	 * This check reflects the fact that the pixel Top and Right sides
+	 * are open (not part of the pixel).
+	 */
+	// check Right side
+	maxx := h.hpx + h.TOLERANCE
+	segMinx := math.Min(px, qx)
+	if segMinx >= maxx {
+		return false
+	}
+	// check Left side
+	minx := h.hpx - h.TOLERANCE
+	segMaxx := math.Max(px, qx)
+	if segMaxx < minx {
+		return false
+	}
+	// check Top side
+	maxy := h.hpy + h.TOLERANCE
+	segMiny := math.Min(py, qy)
+	if segMiny >= maxy {
+		return false
+	}
+	// check Bottom side
+	miny := h.hpy - h.TOLERANCE
+	segMaxy := math.Max(py, qy)
+	if segMaxy < miny {
+		return false
+	}
+
+	/**
+	 * Vertical or horizontal segments must now intersect
+	 * the segment interior or Left or Bottom sides.
+	 */
+	//---- check vertical segment
+	if px == qx {
+		return true
+	}
+	//---- check horizontal segment
+	if py == qy {
+		return true
+	}
+
+	/**
+	 * Now know segment is not horizontal or vertical.
+	 *
+	 * Compute orientation WRT each pixel corner.
+	 * If corner orientation == 0,
+	 * segment intersects the corner.
+	 * From the corner and whether segment is heading up or down,
+	 * can determine intersection or not.
+	 *
+	 * Otherwise, check whether segment crosses interior of pixel side
+	 * This is the case if the orientations for each corner of the side are different.
+	 */
+	var cgDD measure.CGAlgorithmsDD
+	orientUL := cgDD.OrientationIndex(px, py, qx, qy, minx, maxy)
+	if orientUL == 0 {
+		// upward segment does not intersect pixel interior
+		if py < qy {
+			return false
+		}
+		// downward segment must intersect pixel interior
+		return true
+	}
+
+	orientUR := cgDD.OrientationIndex(px, py, qx, qy, maxx, maxy)
+	if orientUR == 0 {
+		// downward segment does not intersect pixel interior
+		if py > qy {
+			return false
+		}
+		// upward segment must intersect pixel interior
+		return true
+	}
+	//--- check crossing Top side
+	if orientUL != orientUR {
+		return true
+	}
+
+	orientLL := cgDD.OrientationIndex(px, py, qx, qy, minx, miny)
+	if orientLL == 0 {
+		// segment crossed LL corner, which is the only one in pixel interior
+		return true
+	}
+	//--- check crossing Left side
+	if orientLL != orientUL {
+		return true
+	}
+
+	orientLR := cgDD.OrientationIndex(px, py, qx, qy, maxx, miny)
+	if orientLR == 0 {
+		// upward segment does not intersect pixel interior
+		if py < qy {
+			return false
+		}
+		// downward segment must intersect pixel interior
+		return true
+	}
+
+	//--- check crossing Bottom side
+	if orientLL != orientLR {
+		return true
+	}
+	//--- check crossing Right side
+	if orientLR != orientUR {
+		return true
+	}
+
+	// segment does not intersect pixel
+	return false
 }

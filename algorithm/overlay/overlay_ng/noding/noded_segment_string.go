@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// Represents a list of contiguous line segments, and supports noding
+// NodedSegmentString Represents a list of contiguous line segments, and supports noding
 // the segments. The line segments are represented by an array of Coordinates.
 // Intended to optimize the noding of contiguous segments by reducing the
 // number of allocated objects. SegmentStrings can carry a context object,
@@ -24,7 +24,7 @@ func NewNodedSegmentString(pts []matrix.Matrix, data interface{}) *NodedSegmentS
 		pts:  pts,
 		data: data,
 	}
-	nodedSegmentString.nodeList = NewSegmentNodeList(&nodedSegmentString)	// todo 验证写法
+	nodedSegmentString.nodeList = NewSegmentNodeList(&nodedSegmentString) // todo 验证写法
 	return &nodedSegmentString
 }
 
@@ -52,7 +52,7 @@ func (n *NodedSegmentString) getNodedSubstrings(segStrings, resultEdgeList inter
 // todo remove
 func PrintlnEdgeList(resultEdgeList interface{}) {
 	for i, _ := range resultEdgeList.([]SegmentString) {
-		fmt.Print(strconv.Itoa(i) + ":", resultEdgeList.([]SegmentString)[i], " ")
+		fmt.Print(strconv.Itoa(i)+":", resultEdgeList.([]SegmentString)[i], " ")
 	}
 	fmt.Println()
 }
@@ -84,4 +84,27 @@ func (n *NodedSegmentString) safeOctant(p0, p1 matrix.Matrix) int {
 	}
 	var oct Octant
 	return oct.Octant(p0, p1)
+}
+
+// addIntersectionNode Adds an intersection node for a given point and segment to this segment string.
+// If an intersection already exists for this exact location, the existing node will be returned.
+func (n *NodedSegmentString) addIntersectionNode(intPt matrix.Matrix, segmentIndex int) *SegmentNode {
+	normalizedSegmentIndex := segmentIndex
+	//Debug.println("edge intpt: " + intPt + " dist: " + dist);
+	// normalize the intersection point location
+	nextSegIndex := normalizedSegmentIndex + 1
+	if nextSegIndex < len(n.pts) {
+		nextPt := n.pts[nextSegIndex]
+		// Normalize segment index if intPt falls on vertex
+		// The check for point equality is 2D only - Z values are ignored
+		if intPt.Equals(nextPt) {
+			//Debug.println("normalized distance");
+			normalizedSegmentIndex = nextSegIndex
+		}
+	}
+	/*
+	  Add the intersection point to edge intersection list.
+	*/
+	ei := n.nodeList.add(intPt, normalizedSegmentIndex)
+	return ei
 }
